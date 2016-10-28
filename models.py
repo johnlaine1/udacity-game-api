@@ -1,3 +1,4 @@
+import random
 from protorpc import messages
 from google.appengine.ext import ndb
 
@@ -13,12 +14,16 @@ class Game(ndb.Model):
     user = ndb.KeyProperty(required=True, kind='User')
     attempts_allowed = ndb.IntegerProperty(required=True)
     attempts_remaining = ndb.IntegerProperty(required=True, default=5)
+    game_over = ndb.BooleanProperty(required=True, default=False)
+    secret_word = ndb.StringProperty(required=True)
     
     @classmethod
     def create_game(cls, user, attempts_allowed):
         """Creates and returns a new game"""
+        secret_word = cls.secret_word_generator()
         game = Game(user=user,
-                    attempts_allowed=attempts_allowed)
+                    attempts_allowed=attempts_allowed,
+                    secret_word=secret_word)
         game.put()
         return game
         
@@ -30,13 +35,18 @@ class Game(ndb.Model):
         state.attempts_remaining = self.attempts_remaining
         state.message = message
         return state
+    
+    @staticmethod
+    def secret_word_generator():
+        """Returns a random word from a list of words"""
+        words = [
+            'cat',
+            'dog',
+            'house',
+            'tree']
+        return random.choice(words)
         
 ##### MESSAGES #####
-
-class Test(messages.Message):
-    """This is a test endpoint, for dev purposes"""
-    message = messages.StringField(1)
-    
 class StringMessage(messages.Message):
     """A generic outbound string message"""
     message = messages.StringField(1, required=True)

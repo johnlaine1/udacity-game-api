@@ -4,26 +4,22 @@ from protorpc import messages
 from protorpc import remote
 
 from models import User, Game
-from models import Test, StringMessage, CreateGameForm, GameState
+from models import StringMessage, CreateGameForm, GameState
+
+from utils import get_by_urlsafe
 
 ##### RESOURCE CONTAINERS #####
 CREATE_USER_REQUEST = endpoints.ResourceContainer(
-                      user_name = messages.StringField(1, required = True))
-CREATE_GAME_REQUEST = endpoints.ResourceContainer(CreateGameForm)
-    
+                      user_name=messages.StringField(1, required = True))
+GET_GAME_REQUEST    = endpoints.ResourceContainer(
+                      urlsafe_game_key=messages.StringField(1))
+
+
 ##### GAME API #####
 @endpoints.api(name='hangman', version = 'v1')
 class HangmanAPI(remote.Service):
     """Hangman Game API"""
-    @endpoints.method(request_message = message_types.VoidMessage,
-                      response_message = Test,
-                      path = 'test',
-                      http_method = 'GET',
-                      name = 'test')
-    def test(self, request):
-        return Test(message = 'This is a test, this is only a test')
-        
-    
+
     @endpoints.method(request_message = CREATE_USER_REQUEST,
                       response_message = StringMessage,
                       path = 'user',
@@ -56,4 +52,19 @@ class HangmanAPI(remote.Service):
         game = Game.create_game(user.key, request.attempts_allowed)
         return game.game_state('A new game of Hangman was created!')
                     
+                    
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=GameState,
+                      path='game/{urlsafe_game_key}',
+                      name='get_game',
+                      http_method='GET')
+    def get_game(self, request):
+        """Return the current game state"""
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if game:
+            return game.game_state("Here's the game you requested")
+        else:
+            raise endpoints.NotFoundException('No Game Found')
+        
+        
 api = endpoints.api_server([HangmanAPI])
