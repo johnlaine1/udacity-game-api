@@ -13,17 +13,21 @@ class Game(ndb.Model):
     """A Game object"""
     user = ndb.KeyProperty(required=True, kind='User')
     attempts_allowed = ndb.IntegerProperty(required=True)
-    attempts_remaining = ndb.IntegerProperty(required=True, default=5)
+    attempts_remaining = ndb.IntegerProperty(required=True)
     game_over = ndb.BooleanProperty(required=True, default=False)
     secret_word = ndb.StringProperty(required=True)
+    current_solution = ndb.StringProperty(required=True)
     
     @classmethod
-    def create_game(cls, user, attempts_allowed):
+    def create_game(cls, user, attempts_allowed=5):
         """Creates and returns a new game"""
         secret_word = cls.secret_word_generator()
+        current_solution = ''.join(['_' for l in secret_word])
         game = Game(user=user,
                     attempts_allowed=attempts_allowed,
-                    secret_word=secret_word)
+                    attempts_remaining=attempts_allowed,
+                    secret_word=secret_word,
+                    current_solution=current_solution)
         game.put()
         return game
         
@@ -34,6 +38,7 @@ class Game(ndb.Model):
         state.user_name = self.user.get().name
         state.attempts_remaining = self.attempts_remaining
         state.message = message
+        state.current_solution = list(self.current_solution)
         return state
     
     @staticmethod
@@ -62,5 +67,7 @@ class GameState(messages.Message):
     user_name = messages.StringField(2, required=True)
     attempts_remaining = messages.IntegerField(3, required=True)
     message = messages.StringField(4, required=True)
+    current_solution = messages.StringField(5, repeated=True)
     
+
     

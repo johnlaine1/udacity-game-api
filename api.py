@@ -59,7 +59,7 @@ class HangmanAPI(remote.Service):
                       name='get_game',
                       http_method='GET')
     def get_game(self, request):
-        """Return the current game state"""
+        """Return a game state"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
             return game.game_state("Here's the game you requested")
