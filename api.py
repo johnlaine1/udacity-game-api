@@ -3,8 +3,9 @@ from protorpc import message_types
 from protorpc import messages
 from protorpc import remote
 
-from models import User, Game
+from models import User, Game, Score
 from models import StringMessage, CreateGameForm, GameState, GuessLetterForm
+from models import ScoreForm, ScoreForms
 
 from utils import get_by_urlsafe
 
@@ -73,7 +74,7 @@ class HangmanAPI(remote.Service):
                       path='game/{urlsafe_game_key}',
                       name='guess_letter',
                       http_method='PUT')
-    def guess_letter(self,request):
+    def guess_letter(self, request):
         """Guess a letter in a game. Returns the state of the game"""
         letter_guess = request.letter_guess.upper()
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
@@ -120,5 +121,12 @@ class HangmanAPI(remote.Service):
             return game.game_state(msg)
         
         
+    @endpoints.method(response_message=ScoreForms,
+                      path='scores',
+                      name='get_scores',
+                      http_method='GET')
+    def get_scores(self, request):
+        """Return all scores"""
+        return ScoreForms(items=[score.create_form() for score in Score.query()])
         
 api = endpoints.api_server([HangmanAPI])

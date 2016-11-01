@@ -123,5 +123,5 @@ class ScoreForm(messages.Message):
     
 class ScoreForms(messages.Message):
     """Outbound, create multiple instances of ScoreForm"""
-    items =messages.MessageField(ScoreForm, 1, repeated=True)
+    items=messages.MessageField(ScoreForm, 1, repeated=True)
     
