@@ -7,7 +7,7 @@ from google.appengine.ext import ndb
 ##### DATABASE MODELS #####
 class User(ndb.Model):
     """A User Profile object"""
-    name = ndb.StringProperty(required=True)
+    user_name = ndb.StringProperty(required=True)
 
 class Game(ndb.Model):
     """A Game object"""
@@ -36,7 +36,7 @@ class Game(ndb.Model):
         """Returns the state of a game"""
         state = GameState()
         state.urlsafe_game_key = self.key.urlsafe()
-        state.user_name = self.user.get().name
+        state.user_name = self.user.get().user_name
         state.misses_remaining = self.misses_remaining
         state.message = message
         state.current_solution = list(self.current_solution)
@@ -85,7 +85,7 @@ class Score(ndb.Model):
     misses = ndb.IntegerProperty(required=True)
     
     def create_form(self):
-        return ScoreForm(user_name=self.user.get().name,
+        return ScoreForm(user_name=self.user.get().user_name,
                          won=self.won,
                          date=str(self.date),
                          misses=self.misses)

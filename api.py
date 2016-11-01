@@ -10,12 +10,13 @@ from models import ScoreForm, ScoreForms
 from utils import get_by_urlsafe
 
 ##### RESOURCE CONTAINERS #####
-CREATE_USER_REQUEST = endpoints.ResourceContainer(
+CREATE_USER_REQUEST  = endpoints.ResourceContainer(
                       user_name=messages.StringField(1, required = True))
-GET_GAME_REQUEST    = endpoints.ResourceContainer(
+GET_GAME_REQUEST     = endpoints.ResourceContainer(
                       urlsafe_game_key=messages.StringField(1))
-GUESS_LETTER_REQUEST   = endpoints.ResourceContainer(GuessLetterForm,
+GUESS_LETTER_REQUEST = endpoints.ResourceContainer(GuessLetterForm,
                       urlsafe_game_key=messages.StringField(1))
+USER_SCORE_REQUEST   = endpoints.ResourceContainer(user_name=messages.StringField(1))
 
 ##### GAME API #####
 @endpoints.api(name='hangman', version = 'v1')
@@ -29,12 +30,12 @@ class HangmanAPI(remote.Service):
                       http_method = 'POST')
     def create_user(self, request):
         """Create a user"""
-        # Check if the user name already exists
-        if User.query(User.name == request.user_name).get():
+        # Check if the user user already exists
+        if User.query(User.user_name == request.user_name).get():
             raise endpoints.ConflictException(
                 'Sorry, that username already exists')
         # Create the user and store in the database
-        user = User(name = request.user_name)
+        user = User(user_name = request.user_name)
         user.put()
         return StringMessage(message = 'User {} has been created'.format(
             request.user_name))
@@ -47,7 +48,7 @@ class HangmanAPI(remote.Service):
                       http_method='POST')
     def create_game(self, request):
         """Create a game"""
-        user = User.query(User.name == request.user_name).get()
+        user = User.query(User.user_name == request.user_name).get()
         if not user:
             raise endpoints.NotFoundException(
                 'A user with that name does not exist!')
@@ -129,4 +130,20 @@ class HangmanAPI(remote.Service):
         """Return all scores"""
         return ScoreForms(items=[score.create_form() for score in Score.query()])
         
+    @endpoints.method(request_message=USER_SCORE_REQUEST,
+                      response_message=ScoreForms,
+                      path='scores/user/{user_name}',
+                      name='get_user_scores',
+                      http_method='GET')
+    def get_user_scores(self, request):
+        """Return all scores of a user"""
+        user = User.query(User.user_name == request.user_name).get()
+        if not user:
+            raise endpoints.NotFoundException(
+                'Sorry, that user does not exist')
+        scores = Score.query(Score.user == user.key)
+        return ScoreForms(items=[score.create_form() for score in scores])
+    
+    
+    
 api = endpoints.api_server([HangmanAPI])
