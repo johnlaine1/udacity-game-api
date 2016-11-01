@@ -12,20 +12,21 @@ class User(ndb.Model):
 class Game(ndb.Model):
     """A Game object"""
     user = ndb.KeyProperty(required=True, kind='User')
-    attempts_allowed = ndb.IntegerProperty(required=True)
-    attempts_remaining = ndb.IntegerProperty(required=True)
+    misses_allowed = ndb.IntegerProperty(required=True)
+    misses_remaining = ndb.IntegerProperty(required=True)
+    letters_guessed = ndb.StringProperty(default='')
     game_over = ndb.BooleanProperty(required=True, default=False)
     secret_word = ndb.StringProperty(required=True)
     current_solution = ndb.StringProperty(required=True)
     
     @classmethod
-    def create_game(cls, user, attempts_allowed=5):
+    def create_game(cls, user, misses_allowed=5):
         """Creates and returns a new game"""
         secret_word = cls.secret_word_generator()
         current_solution = ''.join(['_' for l in secret_word])
         game = Game(user=user,
-                    attempts_allowed=attempts_allowed,
-                    attempts_remaining=attempts_allowed,
+                    misses_allowed=misses_allowed,
+                    misses_remaining=misses_allowed,
                     secret_word=secret_word,
                     current_solution=current_solution)
         game.put()
@@ -36,20 +37,41 @@ class Game(ndb.Model):
         state = GameState()
         state.urlsafe_game_key = self.key.urlsafe()
         state.user_name = self.user.get().name
-        state.attempts_remaining = self.attempts_remaining
+        state.misses_remaining = self.misses_remaining
         state.message = message
         state.current_solution = list(self.current_solution)
+        state.letters_guessed = list(self.letters_guessed)
         return state
     
     @staticmethod
     def secret_word_generator():
         """Returns a random word from a list of words"""
         words = [
-            'cat',
-            'dog',
-            'house',
-            'tree']
+            'CAT',
+            'DOG',
+            'HOUSE',
+            'TREE']
         return random.choice(words)
+        
+    def update_current_solution(self, letter):
+            """Update the current solution."""
+            # Get the indices of the letter matches
+            matches = [i for i, x in enumerate(list(self.secret_word)) if x == letter]
+            solution = list(self.current_solution)
+            for match in matches:
+                solution[match] = letter
+            self.current_solution = ''.join(solution)
+            self.put()
+            if self.current_solution == self.secret_word:
+                return True
+            else:
+                return False
+        
+    def end_game(self, won=False):
+        """Ends the game - if won is True, the player won. - if won is False,
+        the player lost."""
+        self.game_over = True
+        self.put()
         
 ##### MESSAGES #####
 class StringMessage(messages.Message):
@@ -59,15 +81,20 @@ class StringMessage(messages.Message):
 class CreateGameForm(messages.Message):
     """Inbound, used to create a new game"""
     user_name = messages.StringField(1, required=True)
-    attempts_allowed = messages.IntegerField(2, default=5)
+    misses_allowed = messages.IntegerField(2, default=5)
     
 class GameState(messages.Message):
     """Outbound game state information"""
     urlsafe_game_key = messages.StringField(1, required=True)
     user_name = messages.StringField(2, required=True)
-    attempts_remaining = messages.IntegerField(3, required=True)
+    misses_remaining = messages.IntegerField(3, required=True)
     message = messages.StringField(4, required=True)
     current_solution = messages.StringField(5, repeated=True)
+    letters_guessed = messages.StringField(6, repeated=True)
+    
+class GuessLetterForm(messages.Message):
+    """Inbound, used to make a move in a game"""
+    letter_guess = messages.StringField(1, required=True)
     
 
     
