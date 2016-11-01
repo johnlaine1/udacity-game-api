@@ -1,10 +1,10 @@
 import random
+from datetime import date
 from protorpc import messages
 from google.appengine.ext import ndb
 
 
 ##### DATABASE MODELS #####
-
 class User(ndb.Model):
     """A User Profile object"""
     name = ndb.StringProperty(required=True)
@@ -68,10 +68,28 @@ class Game(ndb.Model):
                 return False
         
     def end_game(self, won=False):
-        """Ends the game - if won is True, the player won. - if won is False,
-        the player lost."""
+        """Ends the game"""
         self.game_over = True
         self.put()
+        score = Score(user=self.user,
+                      date=date.today(),
+                      won=won,
+                      misses=self.misses_allowed - self.misses_remaining)
+        score.put()
+        
+class Score(ndb.Model):
+    """Score Object"""
+    user = ndb.KeyProperty(required=True, kind='User')
+    date = ndb.DateProperty(required=True)
+    won = ndb.BooleanProperty(required=True)
+    misses = ndb.IntegerProperty(required=True)
+    
+    def create_form(self):
+        return ScoreForm(user_name=self.user.get().name,
+                         won=self.won,
+                         date=str(self.date),
+                         misses=self.misses)
+                         
         
 ##### MESSAGES #####
 class StringMessage(messages.Message):
@@ -96,5 +114,14 @@ class GuessLetterForm(messages.Message):
     """Inbound, used to make a move in a game"""
     letter_guess = messages.StringField(1, required=True)
     
-
+class ScoreForm(messages.Message):
+    """Outbound, score information"""
+    user_name = messages.StringField(1, required=True)
+    date = messages.StringField(2, required=True)
+    won = messages.BooleanField(3, required=True)
+    misses = messages.IntegerField(4, required=True)
+    
+class ScoreForms(messages.Message):
+    """Outbound, create multiple instances of ScoreForm"""
+    items =messages.MessageField(ScoreForm, 1, repeated=True)
     
