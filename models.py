@@ -8,6 +8,7 @@ from google.appengine.ext import ndb
 class User(ndb.Model):
     """A User Profile object"""
     user_name = ndb.StringProperty(required=True)
+    email     = ndb.StringProperty()
 
 class Game(ndb.Model):
     """A Game object"""

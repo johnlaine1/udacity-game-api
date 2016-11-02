@@ -11,11 +11,12 @@ from utils import get_by_urlsafe
 
 ##### RESOURCE CONTAINERS #####
 CREATE_USER_REQUEST  = endpoints.ResourceContainer(
-                      user_name=messages.StringField(1, required = True))
+                        user_name=messages.StringField(1, required = True),
+                        email=messages.StringField(2))
 GET_GAME_REQUEST     = endpoints.ResourceContainer(
-                      urlsafe_game_key=messages.StringField(1))
+                        urlsafe_game_key=messages.StringField(1))
 GUESS_LETTER_REQUEST = endpoints.ResourceContainer(GuessLetterForm,
-                      urlsafe_game_key=messages.StringField(1))
+                        urlsafe_game_key=messages.StringField(1))
 USER_SCORE_REQUEST   = endpoints.ResourceContainer(user_name=messages.StringField(1))
 
 ##### GAME API #####
@@ -35,7 +36,8 @@ class HangmanAPI(remote.Service):
             raise endpoints.ConflictException(
                 'Sorry, that username already exists')
         # Create the user and store in the database
-        user = User(user_name = request.user_name)
+        user = User(user_name=request.user_name,
+                    email=request.email)
         user.put()
         return StringMessage(message = 'User {} has been created'.format(
             request.user_name))
