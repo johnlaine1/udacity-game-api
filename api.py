@@ -6,15 +6,10 @@ from protorpc import remote
 from models import User, Game, Score
 from models import StringMessage, CreateGameForm, GameState, GuessLetterForm
 from models import ScoreForm, ScoreForms, CreateUserForm
+from models import GET_GAME_REQUEST, GUESS_LETTER_REQUEST, USER_SCORE_REQUEST
 
 from utils import get_by_urlsafe
 
-##### RESOURCE CONTAINERS #####
-GET_GAME_REQUEST     = endpoints.ResourceContainer(
-                        urlsafe_game_key=messages.StringField(1))
-GUESS_LETTER_REQUEST = endpoints.ResourceContainer(GuessLetterForm,
-                        urlsafe_game_key=messages.StringField(1))
-USER_SCORE_REQUEST   = endpoints.ResourceContainer(user_name=messages.StringField(1))
 
 ##### GAME API #####
 @endpoints.api(name='hangman', version = 'v1')
