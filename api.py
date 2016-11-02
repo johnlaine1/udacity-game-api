@@ -5,14 +5,11 @@ from protorpc import remote
 
 from models import User, Game, Score
 from models import StringMessage, CreateGameForm, GameState, GuessLetterForm
-from models import ScoreForm, ScoreForms
+from models import ScoreForm, ScoreForms, CreateUserForm
 
 from utils import get_by_urlsafe
 
 ##### RESOURCE CONTAINERS #####
-CREATE_USER_REQUEST  = endpoints.ResourceContainer(
-                        user_name=messages.StringField(1, required = True),
-                        email=messages.StringField(2))
 GET_GAME_REQUEST     = endpoints.ResourceContainer(
                         urlsafe_game_key=messages.StringField(1))
 GUESS_LETTER_REQUEST = endpoints.ResourceContainer(GuessLetterForm,
@@ -24,7 +21,7 @@ USER_SCORE_REQUEST   = endpoints.ResourceContainer(user_name=messages.StringFiel
 class HangmanAPI(remote.Service):
     """Hangman Game API"""
 
-    @endpoints.method(request_message = CREATE_USER_REQUEST,
+    @endpoints.method(request_message = CreateUserForm,
                       response_message = StringMessage,
                       path = 'user',
                       name = 'create_user',

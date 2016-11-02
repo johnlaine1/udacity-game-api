@@ -126,3 +126,7 @@ class ScoreForms(messages.Message):
     """Outbound, create multiple instances of ScoreForm"""
     items=messages.MessageField(ScoreForm, 1, repeated=True)
     
+class CreateUserForm(messages.Message):
+    """Inbound: Used to create a new user"""
+    user_name = messages.StringField(1, required = True)
+    email = messages.StringField(2)
