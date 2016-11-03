@@ -21,6 +21,10 @@ class Game(ndb.Model):
     game_cancelled = ndb.BooleanProperty(required=True, default=False)
     secret_word = ndb.StringProperty(required=True)
     current_solution = ndb.StringProperty(required=True)
+    score = ndb.IntegerProperty(required=True, default=0)
+    
+    LETTER_POINT = 10
+    WORD_POINT = 20
     
     @classmethod
     def create_game(cls, user, misses_allowed=5):
@@ -47,6 +51,7 @@ class Game(ndb.Model):
         state.letters_guessed = list(self.letters_guessed)
         state.game_over = self.game_over
         state.game_cancelled = self.game_cancelled
+        state.score = self.score
         return state
     
     @staticmethod
@@ -80,21 +85,28 @@ class Game(ndb.Model):
         score = Score(user=self.user,
                       date=date.today(),
                       won=won,
-                      misses=self.misses_allowed - self.misses_remaining)
+                      score=self.score)
         score.put()
+        
+    def update_score(self, letters=0, words=0):
+        points = 0
+        points += letters * self.LETTER_POINT
+        points += words * self.WORD_POINT
+        self.score += points
+        self.put()
         
 class Score(ndb.Model):
     """Score Object"""
     user = ndb.KeyProperty(required=True, kind='User')
     date = ndb.DateProperty(required=True)
     won = ndb.BooleanProperty(required=True)
-    misses = ndb.IntegerProperty(required=True)
+    score = ndb.IntegerProperty(required=True)
     
     def create_form(self):
         return ScoreForm(user_name=self.user.get().user_name,
                          won=self.won,
                          date=str(self.date),
-                         misses=self.misses)
+                         score=self.score)
                          
         
 ##### MESSAGES #####
@@ -117,6 +129,7 @@ class GameStateForm(messages.Message):
     letters_guessed = messages.StringField(6, repeated=True)
     game_over = messages.BooleanField(7)
     game_cancelled = messages.BooleanField(8)
+    score = messages.IntegerField(9)
     
 class GameStateForms(messages.Message):
     """Outbound, create multiple instances of GameStateForm"""
@@ -131,7 +144,7 @@ class ScoreForm(messages.Message):
     user_name = messages.StringField(1, required=True)
     date = messages.StringField(2, required=True)
     won = messages.BooleanField(3, required=True)
-    misses = messages.IntegerField(4, required=True)
+    score = messages.IntegerField(4, required=True)
     
 class ScoreForms(messages.Message):
     """Outbound, create multiple instances of ScoreForm"""

@@ -109,14 +109,15 @@ class HangmanAPI(remote.Service):
             
         # If letter guess is correct
         if letter_guess in game.secret_word:
-            # Update the letters guessed property
-            game.letters_guessed = game.letters_guessed + letter_guess
+            num_of_letters = game.secret_word.count(letter_guess)
             game_won = game.update_current_solution(letter_guess)
             
             if game_won:
                 msg = "Great Job, you won the game!"
+                game.update_score(letters=num_of_letters, words=1)
                 game.end_game(True)
             else:
+                game.update_score(letters=num_of_letters)
                 msg = 'Nice Job, the letter {} is in the secret word'.format(letter_guess)
             
             return game.game_state(msg)
