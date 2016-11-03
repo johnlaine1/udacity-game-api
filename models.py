@@ -26,7 +26,8 @@ class Game(ndb.Model):
         """Creates and returns a new game"""
         secret_word = cls.secret_word_generator()
         current_solution = ''.join(['_' for l in secret_word])
-        game = Game(user=user,
+        game = Game(parent=user,
+                    user=user,
                     misses_allowed=misses_allowed,
                     misses_remaining=misses_allowed,
                     secret_word=secret_word,
@@ -34,9 +35,9 @@ class Game(ndb.Model):
         game.put()
         return game
         
-    def game_state(self, message):
+    def game_state(self, message=''):
         """Returns the state of a game"""
-        state = GameState()
+        state = GameStateForm()
         state.urlsafe_game_key = self.key.urlsafe()
         state.user_name = self.user.get().user_name
         state.misses_remaining = self.misses_remaining
@@ -103,14 +104,18 @@ class CreateGameForm(messages.Message):
     user_name = messages.StringField(1, required=True)
     misses_allowed = messages.IntegerField(2, default=5)
     
-class GameState(messages.Message):
+class GameStateForm(messages.Message):
     """Outbound game state information"""
     urlsafe_game_key = messages.StringField(1, required=True)
     user_name = messages.StringField(2, required=True)
     misses_remaining = messages.IntegerField(3, required=True)
-    message = messages.StringField(4, required=True)
+    message = messages.StringField(4)
     current_solution = messages.StringField(5, repeated=True)
     letters_guessed = messages.StringField(6, repeated=True)
+    
+class GameStateForms(messages.Message):
+    """Outbound, create multiple instances of GameStateForm"""
+    items = messages.MessageField(GameStateForm, 1, repeated=True)
     
 class GuessLetterForm(messages.Message):
     """Inbound, used to make a move in a game"""
@@ -132,9 +137,14 @@ class CreateUserForm(messages.Message):
     user_name = messages.StringField(1, required = True)
     email = messages.StringField(2)
     
+    
 ##### RESOURCE CONTAINERS #####
 GET_GAME_REQUEST     = endpoints.ResourceContainer(
                         urlsafe_game_key=messages.StringField(1))
+                        
 GUESS_LETTER_REQUEST = endpoints.ResourceContainer(GuessLetterForm,
                         urlsafe_game_key=messages.StringField(1))
+                        
 USER_SCORE_REQUEST   = endpoints.ResourceContainer(user_name=messages.StringField(1))
+
+GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1))

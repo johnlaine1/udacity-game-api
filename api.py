@@ -2,11 +2,12 @@ import endpoints
 from protorpc import message_types
 from protorpc import messages
 from protorpc import remote
+from google.appengine.ext import ndb
 
 from models import User, Game, Score
-from models import StringMessage, CreateGameForm, GameState, GuessLetterForm
-from models import ScoreForm, ScoreForms, CreateUserForm
-from models import GET_GAME_REQUEST, GUESS_LETTER_REQUEST, USER_SCORE_REQUEST
+from models import StringMessage, CreateGameForm, GameStateForm, GuessLetterForm
+from models import GameStateForms, ScoreForm, ScoreForms, CreateUserForm
+from models import GET_GAME_REQUEST, GUESS_LETTER_REQUEST, USER_SCORE_REQUEST, GET_USER_GAMES_REQUEST
 
 from utils import get_by_urlsafe
 
@@ -36,7 +37,7 @@ class HangmanAPI(remote.Service):
 
 
     @endpoints.method(request_message=CreateGameForm,
-                      response_message=GameState,
+                      response_message=GameStateForm,
                       path='game',
                       name='create_game',
                       http_method='POST')
@@ -51,7 +52,7 @@ class HangmanAPI(remote.Service):
                     
                     
     @endpoints.method(request_message=GET_GAME_REQUEST,
-                      response_message=GameState,
+                      response_message=GameStateForm,
                       path='game/{urlsafe_game_key}',
                       name='get_game',
                       http_method='GET')
@@ -65,7 +66,7 @@ class HangmanAPI(remote.Service):
         
 
     @endpoints.method(request_message=GUESS_LETTER_REQUEST,
-                      response_message=GameState,
+                      response_message=GameStateForm,
                       path='game/{urlsafe_game_key}',
                       name='guess_letter',
                       http_method='PUT')
@@ -139,5 +140,18 @@ class HangmanAPI(remote.Service):
         return ScoreForms(items=[score.create_form() for score in scores])
     
     
-    
+    @endpoints.method(request_message=GET_USER_GAMES_REQUEST,
+                      response_message=GameStateForms,
+                      path='/games/user/{user_name}',
+                      name='get_user_games',
+                      http_method='GET')
+    def get_user_games(self, request):
+        """Return all games of a user"""
+        user = User.query(User.user_name == request.user_name).get()
+        if not user:
+            msg = 'That username does not exist.'
+            raise endpoints.NotFoundException(msg)
+        games = Game.query(ancestor=user.key)
+        return GameStateForms(items=[game.game_state() for game in games])
+        
 api = endpoints.api_server([HangmanAPI])
