@@ -18,6 +18,7 @@ class Game(ndb.Model):
     misses_remaining = ndb.IntegerProperty(required=True)
     letters_guessed = ndb.StringProperty(default='')
     game_over = ndb.BooleanProperty(required=True, default=False)
+    game_cancelled = ndb.BooleanProperty(required=True, default=False)
     secret_word = ndb.StringProperty(required=True)
     current_solution = ndb.StringProperty(required=True)
     
@@ -44,6 +45,8 @@ class Game(ndb.Model):
         state.message = message
         state.current_solution = list(self.current_solution)
         state.letters_guessed = list(self.letters_guessed)
+        state.game_over = self.game_over
+        state.game_cancelled = self.game_cancelled
         return state
     
     @staticmethod
@@ -112,6 +115,8 @@ class GameStateForm(messages.Message):
     message = messages.StringField(4)
     current_solution = messages.StringField(5, repeated=True)
     letters_guessed = messages.StringField(6, repeated=True)
+    game_over = messages.BooleanField(7)
+    game_cancelled = messages.BooleanField(8)
     
 class GameStateForms(messages.Message):
     """Outbound, create multiple instances of GameStateForm"""
@@ -148,3 +153,4 @@ GUESS_LETTER_REQUEST = endpoints.ResourceContainer(GuessLetterForm,
 USER_SCORE_REQUEST   = endpoints.ResourceContainer(user_name=messages.StringField(1))
 
 GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1))
+

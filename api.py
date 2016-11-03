@@ -77,13 +77,18 @@ class HangmanAPI(remote.Service):
         
         # If the game is already over
         if game.game_over:
-            msg = 'Sorry, this game is already over.'
-            return game.game_state(msg)
+            msg = 'Error, This game is already over.'
+            raise endpoints.BadRequestException(msg)
         
+        # If the game has been cancelled
+        if game.game_cancelled:
+            msg = 'Error, this game has been cancelled.'
+            raise endpoints.BadRequestException(msg)
+            
         # If more than one letter is submitted.
         if len(letter_guess) > 1:
-            msg = 'Sorry, you can only choose one letter at a time.'
-            return game.game_state(msg)
+            msg = 'Error, you can only choose one letter at a time.'
+            raise endpoints.BadRequestException(msg)
 
         # If letter guess has already been tried.
         if game.letters_guessed and letter_guess in game.letters_guessed:
@@ -154,4 +159,27 @@ class HangmanAPI(remote.Service):
         games = Game.query(ancestor=user.key)
         return GameStateForms(items=[game.game_state() for game in games])
         
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=GameStateForm,
+                      path='/game/{urlsafe_game_key}/cancel',
+                      name='cancel_game',
+                      http_method='PUT')
+    def cancel_game(self, request):
+        """Cancel a game, by setting it's game_cancelled boolean to True"""
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if not game:
+            raise endpoints.NotFoundException('No game found.')
+            
+        if game.game_over:
+            raise endpoints.BadRequestException('This game is already over')
+            
+        if game.game_cancelled:
+            raise endpoints.BadRequestException('This game has already been cancelled')
+            
+        msg = 'The game has been cancelled'
+        game.game_cancelled = True
+        game.put()
+        return game.game_state(msg)
+        
+            
 api = endpoints.api_server([HangmanAPI])
