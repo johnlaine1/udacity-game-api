@@ -7,7 +7,7 @@ from google.appengine.ext import ndb
 from models import User, Game, Score
 from models import StringMessage, CreateGameForm, GameStateForm, GuessLetterForm
 from models import GameStateForms, ScoreForm, ScoreForms, CreateUserForm
-from models import GET_GAME_REQUEST, GUESS_LETTER_REQUEST, USER_SCORE_REQUEST, GET_USER_GAMES_REQUEST
+from models import GET_GAME_REQUEST, GUESS_LETTER_REQUEST, USER_SCORE_REQUEST, GET_USER_GAMES_REQUEST, GUESS_WORD_REQUEST
 
 from utils import get_by_urlsafe
 
@@ -67,7 +67,7 @@ class HangmanAPI(remote.Service):
 
     @endpoints.method(request_message=GUESS_LETTER_REQUEST,
                       response_message=GameStateForm,
-                      path='game/{urlsafe_game_key}',
+                      path='game/{urlsafe_game_key}/guess/letter',
                       name='guess_letter',
                       http_method='PUT')
     def guess_letter(self, request):
@@ -122,6 +122,47 @@ class HangmanAPI(remote.Service):
             
             return game.game_state(msg)
         
+        
+    @endpoints.method(request_message=GUESS_WORD_REQUEST,
+                      response_message=GameStateForm,
+                      path='game/{urlsafe_game_key}/guess/word',
+                      name='guess_word',
+                      http_method='PUT')
+    def guess_word(self, request):
+        """Guess the secret word in a game"""
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        word_guess = request.word_guess.upper()
+        
+        # If the game is already over
+        if game.game_over:
+            msg = 'Error, This game is already over.'
+            raise endpoints.BadRequestException(msg)
+        
+        # If the game has been cancelled
+        if game.game_cancelled:
+            msg = 'Error, this game has been cancelled.'
+            raise endpoints.BadRequestException(msg)
+        
+        # If the guess is incorrect
+        if word_guess != game.secret_word:
+            game.misses_remaining -= 1
+            game.put()
+            if game.misses_remaining < 1:
+                game.end_game(won=False)
+                msg = 'Sorry, that was the wrong answer and the game is over'
+                game.game_state(msg)
+            else:
+                msg = 'Sorry, that was not the correct answer'
+                return game.game_state(msg)
+        
+        # If the guess is correct
+        if word_guess == game.secret_word:
+            blanks = game.current_solution.count('_')
+            game.update_score(blanks=blanks, words=1)
+            game.end_game(won=True)
+            msg = 'Congratulations! you win!'
+            return game.game_state(msg)
+            
         
     @endpoints.method(response_message=ScoreForms,
                       path='scores',

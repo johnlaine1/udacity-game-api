@@ -25,6 +25,7 @@ class Game(ndb.Model):
     
     LETTER_POINT = 10
     WORD_POINT = 20
+    BLANK_POINT = 20
     
     @classmethod
     def create_game(cls, user, misses_allowed=5):
@@ -81,6 +82,8 @@ class Game(ndb.Model):
     def end_game(self, won=False):
         """Ends the game"""
         self.game_over = True
+        if won:
+            self.current_solution = self.secret_word
         self.put()
         score = Score(user=self.user,
                       date=date.today(),
@@ -88,10 +91,11 @@ class Game(ndb.Model):
                       score=self.score)
         score.put()
         
-    def update_score(self, letters=0, words=0):
+    def update_score(self, blanks=0, letters=0, words=0):
         points = 0
         points += letters * self.LETTER_POINT
         points += words * self.WORD_POINT
+        points += blanks * self.BLANK_POINT
         self.score += points
         self.put()
         
@@ -136,8 +140,12 @@ class GameStateForms(messages.Message):
     items = messages.MessageField(GameStateForm, 1, repeated=True)
     
 class GuessLetterForm(messages.Message):
-    """Inbound, used to make a move in a game"""
+    """Inbound, used to guess a letter in a game"""
     letter_guess = messages.StringField(1, required=True)
+    
+class GuessWordForm(messages.Message):
+    """Inbound, used to guess the secret word in a game"""
+    word_guess = messages.StringField(1, required=True)
     
 class ScoreForm(messages.Message):
     """Outbound, score information"""
@@ -161,6 +169,9 @@ GET_GAME_REQUEST     = endpoints.ResourceContainer(
                         urlsafe_game_key=messages.StringField(1))
                         
 GUESS_LETTER_REQUEST = endpoints.ResourceContainer(GuessLetterForm,
+                        urlsafe_game_key=messages.StringField(1))
+ 
+GUESS_WORD_REQUEST = endpoints.ResourceContainer(GuessWordForm,
                         urlsafe_game_key=messages.StringField(1))
                         
 USER_SCORE_REQUEST   = endpoints.ResourceContainer(user_name=messages.StringField(1))
