@@ -10,6 +10,11 @@ class User(ndb.Model):
     """A User Profile object"""
     user_name = ndb.StringProperty(required=True)
     email     = ndb.StringProperty()
+    score     = ndb.IntegerProperty(default=0)
+    
+    def create_ranking_form(self):
+        return RankingForm(user_name=self.user_name,
+                           score=self.score)
 
 class Game(ndb.Model):
     """A Game object"""
@@ -82,9 +87,14 @@ class Game(ndb.Model):
     def end_game(self, won=False):
         """Ends the game"""
         self.game_over = True
+        
         if won:
             self.current_solution = self.secret_word
+            user = self.user.get()
+            user.score += self.score
+            user.put()
         self.put()
+        
         score = Score(user=self.user,
                       date=date.today(),
                       won=won,
@@ -158,6 +168,15 @@ class ScoreForms(messages.Message):
     """Outbound, create multiple instances of ScoreForm"""
     items=messages.MessageField(ScoreForm, 1, repeated=True)
     
+class RankingForm(messages.Message):
+    """Outbound, user ranking information"""
+    user_name = messages.StringField(1, required=True)
+    score = messages.IntegerField(2, required=True)
+    
+class RankingForms(messages.Message):
+    """Outbound, create mutiple instances of RankingForm"""
+    items = messages.MessageField(RankingForm, 1, repeated=True)
+
 class CreateUserForm(messages.Message):
     """Inbound: Used to create a new user"""
     user_name = messages.StringField(1, required = True)

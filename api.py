@@ -7,6 +7,7 @@ from google.appengine.ext import ndb
 from models import User, Game, Score
 from models import StringMessage, CreateGameForm, GameStateForm, GuessLetterForm
 from models import GameStateForms, ScoreForm, ScoreForms, CreateUserForm
+from models import RankingForms
 from models import GET_GAME_REQUEST, GUESS_LETTER_REQUEST, USER_SCORE_REQUEST, GET_USER_GAMES_REQUEST, GUESS_WORD_REQUEST
 from models import GET_SCORES_REQUEST
 from utils import get_by_urlsafe
@@ -235,4 +236,13 @@ class HangmanAPI(remote.Service):
         if request.number_of_results:
             scores = scores.fetch(int(request.number_of_results))
         return ScoreForms(items=[score.create_form() for score in scores])
+        
+    @endpoints.method(response_message=RankingForms,
+                      path='/user/ranking',
+                      name='get_user_rankings',
+                      http_method='GET')
+    def get_user_rankings(self, request):
+        users = User.query().order(-User.score)
+        return RankingForms(items=[user.create_ranking_form() for user in users])
+    
 api = endpoints.api_server([HangmanAPI])
