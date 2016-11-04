@@ -162,19 +162,23 @@ class CreateUserForm(messages.Message):
     """Inbound: Used to create a new user"""
     user_name = messages.StringField(1, required = True)
     email = messages.StringField(2)
-    
-    
+   
+
 ##### RESOURCE CONTAINERS #####
 GET_GAME_REQUEST     = endpoints.ResourceContainer(
-                        urlsafe_game_key=messages.StringField(1))
+    urlsafe_game_key=messages.StringField(1))
                         
-GUESS_LETTER_REQUEST = endpoints.ResourceContainer(GuessLetterForm,
-                        urlsafe_game_key=messages.StringField(1))
+GUESS_LETTER_REQUEST = endpoints.ResourceContainer(
+    GuessLetterForm, urlsafe_game_key=messages.StringField(1))
  
-GUESS_WORD_REQUEST = endpoints.ResourceContainer(GuessWordForm,
-                        urlsafe_game_key=messages.StringField(1))
+GUESS_WORD_REQUEST = endpoints.ResourceContainer(
+    GuessWordForm, urlsafe_game_key=messages.StringField(1))
                         
-USER_SCORE_REQUEST   = endpoints.ResourceContainer(user_name=messages.StringField(1))
+USER_SCORE_REQUEST   = endpoints.ResourceContainer(
+    user_name=messages.StringField(1))
 
-GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1))
+GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(
+    user_name=messages.StringField(1))
 
+GET_SCORES_REQUEST = endpoints.ResourceContainer(
+    number_of_results=messages.StringField(1, required=False))

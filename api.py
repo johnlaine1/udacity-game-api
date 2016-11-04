@@ -8,7 +8,7 @@ from models import User, Game, Score
 from models import StringMessage, CreateGameForm, GameStateForm, GuessLetterForm
 from models import GameStateForms, ScoreForm, ScoreForms, CreateUserForm
 from models import GET_GAME_REQUEST, GUESS_LETTER_REQUEST, USER_SCORE_REQUEST, GET_USER_GAMES_REQUEST, GUESS_WORD_REQUEST
-
+from models import GET_SCORES_REQUEST
 from utils import get_by_urlsafe
 
 
@@ -224,4 +224,15 @@ class HangmanAPI(remote.Service):
         return game.game_state(msg)
         
             
+    @endpoints.method(request_message=GET_SCORES_REQUEST,
+                      response_message=ScoreForms,
+                      path='/scores/high',
+                      name='get_high_scores',
+                      http_method='GET')
+    def get_high_scores(self, request):
+        """Returns a list of high scores"""
+        scores = Score.query().order(-Score.score)
+        if request.number_of_results:
+            scores = scores.fetch(int(request.number_of_results))
+        return ScoreForms(items=[score.create_form() for score in scores])
 api = endpoints.api_server([HangmanAPI])
