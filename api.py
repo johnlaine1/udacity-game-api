@@ -1,4 +1,5 @@
 import endpoints
+import json
 from protorpc import message_types
 from protorpc import messages
 from protorpc import remote
@@ -7,7 +8,7 @@ from google.appengine.ext import ndb
 from models import User, Game, Score
 from models import StringMessage, CreateGameForm, GameStateForm, GuessLetterForm
 from models import GameStateForms, ScoreForm, ScoreForms, CreateUserForm
-from models import RankingForms
+from models import RankingForms, GameHistoryForms
 from models import GET_GAME_REQUEST, GUESS_LETTER_REQUEST, USER_SCORE_REQUEST, GET_USER_GAMES_REQUEST, GUESS_WORD_REQUEST
 from models import GET_SCORES_REQUEST
 from utils import get_by_urlsafe
@@ -99,9 +100,11 @@ class HangmanAPI(remote.Service):
         # If letter guess is incorrect.
         if letter_guess not in game.secret_word:
             msg = 'Sorry, that is incorrect'
-            game.misses_remaining -=1
-            game.letters_guessed = game.letters_guessed + letter_guess
+            game.decrement_misses_remaining()
+            game.update_letters_guessed(letter_guess)
+            game.update_history(guess=letter_guess, result='Incorrect')
             game.put()
+            
             if game.misses_remaining < 1:
                 game.end_game(False)
                 msg = 'Sorry, that is incorrect and the game is now over.'
@@ -201,7 +204,8 @@ class HangmanAPI(remote.Service):
             raise endpoints.NotFoundException(msg)
         games = Game.query(ancestor=user.key)
         return GameStateForms(items=[game.game_state() for game in games])
-        
+    
+    
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameStateForm,
                       path='/game/{urlsafe_game_key}/cancel',
@@ -236,7 +240,8 @@ class HangmanAPI(remote.Service):
         if request.number_of_results:
             scores = scores.fetch(int(request.number_of_results))
         return ScoreForms(items=[score.create_form() for score in scores])
-        
+    
+    
     @endpoints.method(response_message=RankingForms,
                       path='/user/ranking',
                       name='get_user_rankings',
@@ -244,5 +249,17 @@ class HangmanAPI(remote.Service):
     def get_user_rankings(self, request):
         users = User.query().order(-User.score)
         return RankingForms(items=[user.create_ranking_form() for user in users])
+
     
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=GameHistoryForms,
+                      path='/game/{urlsafe_game_key}/history',
+                      name='get_game_history',
+                      http_method='GET')
+    def get_game_history(self, request):
+        """Get the history of a game"""
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        return game.create_history_form()
+        
+        
 api = endpoints.api_server([HangmanAPI])
