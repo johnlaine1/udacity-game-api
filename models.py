@@ -1,4 +1,5 @@
 import random
+import json
 from datetime import date
 import endpoints
 from protorpc import messages
@@ -16,6 +17,7 @@ class User(ndb.Model):
         return RankingForm(user_name=self.user_name,
                            score=self.score)
 
+
 class Game(ndb.Model):
     """A Game object"""
     user = ndb.KeyProperty(required=True, kind='User')
@@ -27,6 +29,7 @@ class Game(ndb.Model):
     secret_word = ndb.StringProperty(required=True)
     current_solution = ndb.StringProperty(required=True)
     score = ndb.IntegerProperty(required=True, default=0)
+    history = ndb.JsonProperty(repeated=True)
     
     LETTER_POINT = 10
     WORD_POINT = 20
@@ -45,6 +48,7 @@ class Game(ndb.Model):
                     current_solution=current_solution)
         game.put()
         return game
+        
         
     def game_state(self, message=''):
         """Returns the state of a game"""
@@ -70,6 +74,7 @@ class Game(ndb.Model):
             'TREE']
         return random.choice(words)
         
+        
     def update_current_solution(self, letter):
             """Update the current solution."""
             # Get the indices of the letter matches
@@ -78,28 +83,39 @@ class Game(ndb.Model):
             for match in matches:
                 solution[match] = letter
             self.current_solution = ''.join(solution)
-            self.put()
             if self.current_solution == self.secret_word:
                 return True
             else:
                 return False
+                
+                
+    def decrement_misses_remaining(self):
+        self.misses_remaining -=1
+        
+                
+    def update_letters_guessed(self, letter):
+        self.letters_guessed = self.letters_guessed + letter
+        
         
     def end_game(self, won=False):
         """Ends the game"""
         self.game_over = True
         
         if won:
+            self.update_history(guess='', result='Game Won')
             self.current_solution = self.secret_word
             user = self.user.get()
             user.score += self.score
             user.put()
-        self.put()
-        
+        else:
+            self.update_history(guess='', result='Game Lost')
+            
         score = Score(user=self.user,
                       date=date.today(),
                       won=won,
                       score=self.score)
         score.put()
+        
         
     def update_score(self, blanks=0, letters=0, words=0):
         points = 0
@@ -107,8 +123,24 @@ class Game(ndb.Model):
         points += words * self.WORD_POINT
         points += blanks * self.BLANK_POINT
         self.score += points
-        self.put()
         
+        
+    def update_history(self, guess='', result=''):
+        item = json.dumps({'guess': guess, 'result': result})
+        self.history.append(item)
+        
+
+    def create_history_form(self):
+        history_items = [json.loads(item) for item in self.history]
+                
+        history_form_items = []         
+        for item in history_items:
+            history_form_items.append(GameHistoryForm(guess=item.get('guess'),
+                                                      result=item.get('result')))
+            
+        return GameHistoryForms(history=history_form_items)
+  
+
 class Score(ndb.Model):
     """Score Object"""
     user = ndb.KeyProperty(required=True, kind='User')
@@ -127,11 +159,13 @@ class Score(ndb.Model):
 class StringMessage(messages.Message):
     """A generic outbound string message"""
     message = messages.StringField(1, required=True)
-    
+
+
 class CreateGameForm(messages.Message):
     """Inbound, used to create a new game"""
     user_name = messages.StringField(1, required=True)
     misses_allowed = messages.IntegerField(2, default=5)
+
     
 class GameStateForm(messages.Message):
     """Outbound game state information"""
@@ -144,18 +178,22 @@ class GameStateForm(messages.Message):
     game_over = messages.BooleanField(7)
     game_cancelled = messages.BooleanField(8)
     score = messages.IntegerField(9)
+
     
 class GameStateForms(messages.Message):
     """Outbound, create multiple instances of GameStateForm"""
     items = messages.MessageField(GameStateForm, 1, repeated=True)
+
     
 class GuessLetterForm(messages.Message):
     """Inbound, used to guess a letter in a game"""
     letter_guess = messages.StringField(1, required=True)
+
     
 class GuessWordForm(messages.Message):
     """Inbound, used to guess the secret word in a game"""
     word_guess = messages.StringField(1, required=True)
+
     
 class ScoreForm(messages.Message):
     """Outbound, score information"""
@@ -163,25 +201,40 @@ class ScoreForm(messages.Message):
     date = messages.StringField(2, required=True)
     won = messages.BooleanField(3, required=True)
     score = messages.IntegerField(4, required=True)
+
     
 class ScoreForms(messages.Message):
     """Outbound, create multiple instances of ScoreForm"""
     items=messages.MessageField(ScoreForm, 1, repeated=True)
+
     
 class RankingForm(messages.Message):
     """Outbound, user ranking information"""
     user_name = messages.StringField(1, required=True)
     score = messages.IntegerField(2, required=True)
+
     
 class RankingForms(messages.Message):
     """Outbound, create mutiple instances of RankingForm"""
     items = messages.MessageField(RankingForm, 1, repeated=True)
+
 
 class CreateUserForm(messages.Message):
     """Inbound: Used to create a new user"""
     user_name = messages.StringField(1, required = True)
     email = messages.StringField(2)
    
+
+class GameHistoryForm(messages.Message):
+    """Outbound, game history information"""
+    guess = messages.StringField(1)
+    result = messages.StringField(2)
+
+
+class GameHistoryForms(messages.Message):
+    """Outbound, create multiple instances of GameHistoryForm"""
+    history = messages.MessageField(GameHistoryForm, 1, repeated=True)
+    
 
 ##### RESOURCE CONTAINERS #####
 GET_GAME_REQUEST     = endpoints.ResourceContainer(
@@ -201,3 +254,4 @@ GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(
 
 GET_SCORES_REQUEST = endpoints.ResourceContainer(
     number_of_results=messages.StringField(1, required=False))
+
