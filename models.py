@@ -83,7 +83,6 @@ class Game(ndb.Model):
             for match in matches:
                 solution[match] = letter
             self.current_solution = ''.join(solution)
-            self.put()
             if self.current_solution == self.secret_word:
                 return True
             else:
@@ -103,12 +102,14 @@ class Game(ndb.Model):
         self.game_over = True
         
         if won:
+            self.update_history(guess='', result='Game Won')
             self.current_solution = self.secret_word
             user = self.user.get()
             user.score += self.score
             user.put()
-        self.put()
-        
+        else:
+            self.update_history(guess='', result='Game Lost')
+            
         score = Score(user=self.user,
                       date=date.today(),
                       won=won,
@@ -122,7 +123,6 @@ class Game(ndb.Model):
         points += words * self.WORD_POINT
         points += blanks * self.BLANK_POINT
         self.score += points
-        self.put()
         
         
     def update_history(self, guess='', result=''):
