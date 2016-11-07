@@ -1,6 +1,7 @@
 """utils.py - File for collecting general utility functions."""
 
 import logging
+import random
 from google.appengine.ext import ndb
 import endpoints
 
@@ -33,3 +34,18 @@ def get_by_urlsafe(urlsafe, model):
     if not isinstance(entity, model):
         raise ValueError('Incorrect Kind')
     return entity
+
+def secret_word_generator():
+    """Returns a random word from a list of words"""
+    words = [
+        'APPLE',
+        'TREE',
+        'HOUSE',
+        'GARDEN'
+        'SPECIAL',
+        'FROG',
+        'CHILDREN',
+        'FOOD',
+        'SERVICE',
+        'COMPUTER']
+    return random.choice(words)
