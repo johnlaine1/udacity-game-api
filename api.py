@@ -203,7 +203,7 @@ class HangmanAPI(remote.Service):
 
     @endpoints.method(request_message=GET_USER_GAMES_REQUEST,
                       response_message=GameStateForms,
-                      path='/games/user/{user_name}',
+                      path='games/user/{user_name}',
                       name='get_user_games',
                       http_method='GET')
     def get_user_games(self, request):
@@ -218,11 +218,11 @@ class HangmanAPI(remote.Service):
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameStateForm,
-                      path='/game/{urlsafe_game_key}/cancel',
+                      path='game/{urlsafe_game_key}/cancel',
                       name='cancel_game',
                       http_method='PUT')
     def cancel_game(self, request):
-        """Cancel a game, by setting it's game_cancelled boolean to True"""
+        """Cancel a game"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         msg = 'The game has been cancelled'
 
@@ -246,7 +246,7 @@ class HangmanAPI(remote.Service):
 
     @endpoints.method(request_message=GET_SCORES_REQUEST,
                       response_message=ScoreForms,
-                      path='/scores/high',
+                      path='scores/high',
                       name='get_high_scores',
                       http_method='GET')
     def get_high_scores(self, request):
@@ -258,17 +258,18 @@ class HangmanAPI(remote.Service):
 
 
     @endpoints.method(response_message=RankingForms,
-                      path='/user/ranking',
+                      path='user/ranking',
                       name='get_user_rankings',
                       http_method='GET')
     def get_user_rankings(self, request):
+        """Returns a list of users with the highest scores"""
         users = User.query().order(-User.score)
         return RankingForms(items=[user.create_ranking_form() for user in users])
 
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameHistoryForms,
-                      path='/game/{urlsafe_game_key}/history',
+                      path='game/{urlsafe_game_key}/history',
                       name='get_game_history',
                       http_method='GET')
     def get_game_history(self, request):

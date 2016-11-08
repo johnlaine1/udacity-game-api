@@ -1,0 +1,6 @@
+indexes:
+
+- kind: Game
+  ancestor: yes
+  properties:
+  - name: game_over
