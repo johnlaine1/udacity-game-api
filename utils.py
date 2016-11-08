@@ -41,7 +41,7 @@ def secret_word_generator():
         'APPLE',
         'TREE',
         'HOUSE',
-        'GARDEN'
+        'GARDEN',
         'SPECIAL',
         'FROG',
         'CHILDREN',
