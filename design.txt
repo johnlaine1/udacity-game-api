@@ -1,0 +1,47 @@
+1. Additional properties that I added to my models and why.
+
+
+User.score:
+    This keep a running total score of all games played by the user.
+
+Game.history:
+    This keeps a JSON representation of all 'Guesses' and 'Results' for
+    a game.
+
+Game.score:
+    This keeps track of the score for a game.
+
+Game.current_solution:
+    This holds the portion of the 'secret word' that the user has already
+    guessed.
+
+Game.secret_word:
+    This is the 'secret word' that the user is trying to guess.
+
+Game.letters_guessed:
+    This contains a string of all the letters that have already been guessed,
+    both the correct and incorrect. This is used to prevent the user from
+    guessing the same letter twice.
+
+Game.cancelled:
+    This is a boolean to indicate whether a game has been cancelled.
+
+
+
+
+2. Some of the struggles that I faced when implementing the new game logic.
+
+
+Deciding when to use a ResourceContainer vs a Message:
+    I understand that ResourceContainers are used when you have url or query
+    parameters and Messages are used for request parameters but I did not
+    really know when I should send a parameter as a query string, a url
+    component or as part of the request object.
+
+
+Deciding how much of the logic to keep in the endpoint handlers vs the models.
+
+Figuring out how to store and retrieve the current_solution and letters_guessed.
+
+Converting history from a dictionary to a JSON object and back again in order to
+stor and retrieve from the database.
