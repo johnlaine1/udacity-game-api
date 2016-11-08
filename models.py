@@ -4,6 +4,7 @@ import endpoints
 from protorpc import messages
 from google.appengine.ext import ndb
 from utils import secret_word_generator
+from config import LETTER_POINT, WORD_POINT, BLANK_POINT
 
 
 ##### DATABASE MODELS #####
@@ -21,7 +22,7 @@ class User(ndb.Model):
 class Game(ndb.Model):
     """A Game object"""
     user = ndb.KeyProperty(required=True, kind='User')
-    misses_allowed = ndb.IntegerProperty(required=True)
+    misses_allowed = ndb.IntegerProperty(required=True, default=5)
     misses_remaining = ndb.IntegerProperty(required=True)
     letters_guessed = ndb.StringProperty(default='')
     game_over = ndb.BooleanProperty(required=True, default=False)
@@ -31,9 +32,6 @@ class Game(ndb.Model):
     score = ndb.IntegerProperty(required=True, default=0)
     history = ndb.JsonProperty(repeated=True)
 
-    LETTER_POINT = 10
-    WORD_POINT = 20
-    BLANK_POINT = 20
 
     @classmethod
     def create_game(cls, user, misses_allowed=5):
@@ -109,9 +107,9 @@ class Game(ndb.Model):
 
     def update_score(self, blanks=0, letters=0, words=0):
         points = 0
-        points += letters * self.LETTER_POINT
-        points += words * self.WORD_POINT
-        points += blanks * self.BLANK_POINT
+        points += letters * LETTER_POINT
+        points += words * WORD_POINT
+        points += blanks * BLANK_POINT
         self.score += points
 
 
@@ -154,7 +152,7 @@ class StringMessage(messages.Message):
 class CreateGameForm(messages.Message):
     """Inbound, used to create a new game"""
     user_name = messages.StringField(1, required=True)
-    misses_allowed = messages.IntegerField(2, default=5)
+    misses_allowed = messages.IntegerField(2, required=True)
 
 
 class GameStateForm(messages.Message):
