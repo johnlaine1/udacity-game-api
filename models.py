@@ -19,6 +19,7 @@ class User(ndb.Model):
 
     @classmethod
     def create_user(cls, user_name, email):
+        """Creates a user and saves to the DB"""
         # Check if the user already exists
         if cls.query(cls.user_name == user_name).get():
             msg = 'Sorry, that username already exists'
@@ -31,6 +32,7 @@ class User(ndb.Model):
 
     @classmethod
     def get_user(cls, user_name):
+        """Gets a user from the DB and returns it"""
         user = cls.query(cls.user_name == user_name).get()
         if not user:
             msg = 'A user with that name does not exist!'
@@ -39,6 +41,7 @@ class User(ndb.Model):
 
 
     def create_ranking_form(self):
+        """Creates and returns a RankingForm"""
         return RankingForm(user_name=self.user_name,
                            score=self.score)
 
@@ -83,6 +86,7 @@ class Game(ndb.Model):
 
 
     def cancel_game(self):
+        """Cancels a game"""
         msg = 'The game has been cancelled'
 
         # If the requested game is already over.
@@ -115,6 +119,7 @@ class Game(ndb.Model):
 
 
     def guess_word(self, word_guess):
+        """Handles the logic to guess a word in a game"""
         # If the game is already over
         if self.game_over:
             msg = 'Error, This game is already over.'
@@ -152,6 +157,7 @@ class Game(ndb.Model):
 
 
     def letter_guess(self, letter_guess):
+        """Handles the logic to guess a letter in a game"""
         # If the game is already over
         if self.game_over:
             msg = 'Error, This game is already over.'
@@ -208,24 +214,26 @@ class Game(ndb.Model):
 
 
     def update_current_solution(self, letter):
-            """Update the current solution."""
-            # Get the indices of the letter matches
-            matches = [i for i, x in enumerate(list(self.secret_word)) if x == letter]
-            solution = list(self.current_solution)
-            for match in matches:
-                solution[match] = letter
-            self.current_solution = ''.join(solution)
-            if self.current_solution == self.secret_word:
-                return True
-            else:
-                return False
+        """Update the current solution."""
+        # Get the indices of the letter matches
+        matches = [i for i, x in enumerate(list(self.secret_word)) if x == letter]
+        solution = list(self.current_solution)
+        for match in matches:
+            solution[match] = letter
+        self.current_solution = ''.join(solution)
+        if self.current_solution == self.secret_word:
+            return True
+        else:
+            return False
 
 
     def decrement_misses_remaining(self):
+        """Decrement the misses remaining property"""
         self.misses_remaining -=1
 
 
     def update_letters_guessed(self, letter):
+        """Update the letter_guessed property"""
         self.letters_guessed = self.letters_guessed + letter
 
 
@@ -250,6 +258,7 @@ class Game(ndb.Model):
 
 
     def update_score(self, blanks=0, letters=0, words=0):
+        """Updates the score property"""
         points = 0
         points += letters * LETTER_POINT
         points += words * WORD_POINT
@@ -258,11 +267,13 @@ class Game(ndb.Model):
 
 
     def update_history(self, guess='', result=''):
+        """Updates the history property"""
         item = json.dumps({'guess': guess, 'result': result})
         self.history.append(item)
 
 
     def create_history_form(self):
+        """Creates and returns a history form"""
         history_items = [json.loads(item) for item in self.history]
 
         history_form_items = []
@@ -281,6 +292,7 @@ class Score(ndb.Model):
     score   = ndb.IntegerProperty(required=True)
 
     def create_form(self):
+        """Creates and returns a ScoreForm"""
         return ScoreForm(user_name=self.user.get().user_name,
                          won=self.won,
                          date=str(self.date),
