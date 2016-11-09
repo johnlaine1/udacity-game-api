@@ -117,20 +117,7 @@ class HangmanAPI(remote.Service):
     def cancel_game(self, request):
         """Cancel a game"""
         game = Game.get_game(request.urlsafe_game_key)
-        msg = 'The game has been cancelled'
-
-        # If the requested game is already over.
-        if game.game_over:
-            raise endpoints.BadRequestException('This game is already over')
-
-        # If the requested game has already been cancelled.
-        if game.game_cancelled:
-            raise endpoints.BadRequestException('This game has already been cancelled')
-
-        game.game_cancelled = True
-        game.update_history(guess='', result='Game Cancelled')
-        game.put()
-        return game.game_state(msg)
+        return game.cancel_game()
 
 
     @endpoints.method(request_message=GET_SCORES_REQUEST,

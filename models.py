@@ -82,6 +82,23 @@ class Game(ndb.Model):
             raise endpoints.NotFoundException('No Game Found')
 
 
+    def cancel_game(self):
+        msg = 'The game has been cancelled'
+
+        # If the requested game is already over.
+        if self.game_over:
+            raise endpoints.BadRequestException('This game is already over')
+
+        # If the requested game has already been cancelled.
+        if self.game_cancelled:
+            raise endpoints.BadRequestException('This game has already been cancelled')
+
+        self.game_cancelled = True
+        self.update_history(guess='', result='Game Cancelled')
+        self.put()
+        return self.game_state(msg)
+
+
     def game_state(self, message=''):
         """Returns the state of a game"""
         state = GameStateForm()
