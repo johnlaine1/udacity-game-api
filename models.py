@@ -18,12 +18,25 @@ class User(ndb.Model):
     score     = ndb.IntegerProperty(default=0)
 
     @classmethod
+    def create_user(cls, user_name, email):
+        # Check if the user already exists
+        if cls.query(cls.user_name == user_name).get():
+            msg = 'Sorry, that username already exists'
+            raise endpoints.ConflictException(msg)
+        # Create the user and store in the database
+        user = cls(user_name=user_name, email=email)
+        user.put()
+        return user
+
+
+    @classmethod
     def get_user(cls, user_name):
         user = cls.query(cls.user_name == user_name).get()
         if not user:
             msg = 'A user with that name does not exist!'
             raise endpoints.NotFoundException(msg)
         return user
+
 
     def create_ranking_form(self):
         return RankingForm(user_name=self.user_name,

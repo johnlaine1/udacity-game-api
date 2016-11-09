@@ -27,16 +27,9 @@ class HangmanAPI(remote.Service):
                       http_method = 'POST')
     def create_user(self, request):
         """Create a user"""
-        # Check if the user user already exists
-        if User.query(User.user_name == request.user_name).get():
-            raise endpoints.ConflictException(
-                'Sorry, that username already exists')
-        # Create the user and store in the database
-        user = User(user_name=request.user_name,
-                    email=request.email)
-        user.put()
+        user = User.create_user(request.user_name, request.email)
         return StringMessage(message = 'User {} has been created'.format(
-            request.user_name))
+            user.user_name))
 
 
     @endpoints.method(request_message=CreateGameForm,
