@@ -247,14 +247,14 @@ class Game(ndb.Model):
             user = self.user.get()
             user.score += self.score
             user.put()
+            score = Score(
+                user=self.user,
+                date=date.today(),
+                won=won,
+                score=self.score)
+            score.put()
         else:
             self.update_history(guess='', result='Game Lost')
-
-        score = Score(user=self.user,
-                      date=date.today(),
-                      won=won,
-                      score=self.score)
-        score.put()
 
 
     def update_score(self, blanks=0, letters=0, words=0):
