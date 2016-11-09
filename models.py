@@ -14,6 +14,14 @@ class User(ndb.Model):
     email     = ndb.StringProperty()
     score     = ndb.IntegerProperty(default=0)
 
+    @classmethod
+    def get_user(cls, user_name):
+        user = User.query(User.user_name == user_name).get()
+        if not user:
+            msg = 'A user with that name does not exist!'
+            raise endpoints.NotFoundException(msg)
+        return user
+
     def create_ranking_form(self):
         return RankingForm(user_name=self.user_name,
                            score=self.score)

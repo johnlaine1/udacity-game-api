@@ -45,10 +45,7 @@ class HangmanAPI(remote.Service):
                       http_method='POST')
     def create_game(self, request):
         """Create a game"""
-        user = User.query(User.user_name == request.user_name).get()
-        if not user:
-            raise endpoints.NotFoundException(
-                'A user with that name does not exist!')
+        user = User.get_user(request.user_name)
         game = Game.create_game(user.key, request.misses_allowed)
         return game.game_state('A new game of Hangman has been created!')
 
@@ -193,10 +190,7 @@ class HangmanAPI(remote.Service):
                       http_method='GET')
     def get_user_scores(self, request):
         """Return all scores of a user"""
-        user = User.query(User.user_name == request.user_name).get()
-        if not user:
-            raise endpoints.NotFoundException(
-                'Sorry, that user does not exist')
+        user = User.get_user(request.user_name)
         scores = Score.query(Score.user == user.key)
         return ScoreForms(items=[score.create_form() for score in scores])
 
@@ -208,10 +202,7 @@ class HangmanAPI(remote.Service):
                       http_method='GET')
     def get_user_games(self, request):
         """Return all games of a user"""
-        user = User.query(User.user_name == request.user_name).get()
-        if not user:
-            msg = 'That username does not exist.'
-            raise endpoints.NotFoundException(msg)
+        user = User.get_user(request.user_name)
         games = Game.query(ancestor=user.key)
         return GameStateForms(items=[game.game_state() for game in games])
 
