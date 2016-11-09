@@ -1,5 +1,6 @@
-import endpoints
 import json
+
+import endpoints
 from protorpc import message_types
 from protorpc import messages
 from protorpc import remote
@@ -9,8 +10,8 @@ from models import User, Game, Score
 from models import StringMessage, CreateGameForm, GameStateForm, GuessLetterForm
 from models import GameStateForms, ScoreForm, ScoreForms, CreateUserForm
 from models import RankingForms, GameHistoryForms
-from models import GET_GAME_REQUEST, GUESS_LETTER_REQUEST, USER_SCORE_REQUEST, GET_USER_GAMES_REQUEST, GUESS_WORD_REQUEST
-from models import GET_SCORES_REQUEST
+from models import GET_GAME_REQUEST, GUESS_LETTER_REQUEST, USER_SCORE_REQUEST,
+from models import GET_SCORES_REQUEST, GET_USER_GAMES_REQUEST, GUESS_WORD_REQUEST
 from utils import get_by_urlsafe
 
 

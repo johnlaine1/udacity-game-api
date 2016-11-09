@@ -29,16 +29,16 @@ class User(ndb.Model):
 
 class Game(ndb.Model):
     """A Game object"""
-    user = ndb.KeyProperty(required=True, kind='User')
-    misses_allowed = ndb.IntegerProperty(required=True, default=5)
-    misses_remaining = ndb.IntegerProperty(required=True)
-    letters_guessed = ndb.StringProperty(default='')
-    game_over = ndb.BooleanProperty(required=True, default=False)
-    game_cancelled = ndb.BooleanProperty(required=True, default=False)
-    secret_word = ndb.StringProperty(required=True)
-    current_solution = ndb.StringProperty(required=True)
-    score = ndb.IntegerProperty(required=True, default=0)
-    history = ndb.JsonProperty(repeated=True)
+    user                = ndb.KeyProperty(required=True, kind='User')
+    misses_allowed      = ndb.IntegerProperty(required=True, default=5)
+    misses_remaining    = ndb.IntegerProperty(required=True)
+    letters_guessed     = ndb.StringProperty(default='')
+    game_over           = ndb.BooleanProperty(required=True, default=False)
+    game_cancelled      = ndb.BooleanProperty(required=True, default=False)
+    secret_word         = ndb.StringProperty(required=True)
+    current_solution    = ndb.StringProperty(required=True)
+    score               = ndb.IntegerProperty(required=True, default=0)
+    history             = ndb.JsonProperty(repeated=True)
 
 
     @classmethod
@@ -139,10 +139,10 @@ class Game(ndb.Model):
 
 class Score(ndb.Model):
     """Score Object"""
-    user = ndb.KeyProperty(required=True, kind='User')
-    date = ndb.DateProperty(required=True)
-    won = ndb.BooleanProperty(required=True)
-    score = ndb.IntegerProperty(required=True)
+    user    = ndb.KeyProperty(required=True, kind='User')
+    date    = ndb.DateProperty(required=True)
+    won     = ndb.BooleanProperty(required=True)
+    score   = ndb.IntegerProperty(required=True)
 
     def create_form(self):
         return ScoreForm(user_name=self.user.get().user_name,
