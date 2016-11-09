@@ -1,10 +1,13 @@
 import json
 from datetime import date
+
 import endpoints
 from protorpc import messages
 from google.appengine.ext import ndb
-from utils import secret_word_generator
+
+from utils import secret_word_generator, get_by_urlsafe
 from config import LETTER_POINT, WORD_POINT, BLANK_POINT
+
 
 
 ##### DATABASE MODELS #####
@@ -54,6 +57,16 @@ class Game(ndb.Model):
                     current_solution=current_solution)
         game.put()
         return game
+
+
+    @classmethod
+    def get_game(cls, key):
+        """Returns a GameStateForm"""
+        game = get_by_urlsafe(key, cls)
+        if game:
+            return game.game_state("Here's the game you requested")
+        else:
+            raise endpoints.NotFoundException('No Game Found')
 
 
     def game_state(self, message=''):

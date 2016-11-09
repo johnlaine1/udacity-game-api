@@ -10,7 +10,7 @@ from models import User, Game, Score
 from models import StringMessage, CreateGameForm, GameStateForm, GuessLetterForm
 from models import GameStateForms, ScoreForm, ScoreForms, CreateUserForm
 from models import RankingForms, GameHistoryForms
-from models import GET_GAME_REQUEST, GUESS_LETTER_REQUEST, USER_SCORE_REQUEST,
+from models import GET_GAME_REQUEST, GUESS_LETTER_REQUEST, USER_SCORE_REQUEST
 from models import GET_SCORES_REQUEST, GET_USER_GAMES_REQUEST, GUESS_WORD_REQUEST
 from utils import get_by_urlsafe
 
@@ -58,11 +58,7 @@ class HangmanAPI(remote.Service):
                       http_method='GET')
     def get_game(self, request):
         """Return a game state"""
-        game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if game:
-            return game.game_state("Here's the game you requested")
-        else:
-            raise endpoints.NotFoundException('No Game Found')
+        return Game.get_game(request.urlsafe_game_key)
 
 
     @endpoints.method(request_message=GUESS_LETTER_REQUEST,
