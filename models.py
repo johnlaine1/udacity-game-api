@@ -19,7 +19,7 @@ class User(ndb.Model):
 
     @classmethod
     def get_user(cls, user_name):
-        user = User.query(User.user_name == user_name).get()
+        user = cls.query(cls.user_name == user_name).get()
         if not user:
             msg = 'A user with that name does not exist!'
             raise endpoints.NotFoundException(msg)
@@ -64,7 +64,7 @@ class Game(ndb.Model):
         """Returns a GameStateForm"""
         game = get_by_urlsafe(key, cls)
         if game:
-            return game.game_state("Here's the game you requested")
+            return game
         else:
             raise endpoints.NotFoundException('No Game Found')
 
