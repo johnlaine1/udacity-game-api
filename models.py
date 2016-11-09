@@ -121,6 +121,62 @@ class Game(ndb.Model):
             return self.game_state(msg)
 
 
+    def letter_guess(self, letter_guess):
+        # If the game is already over
+        if self.game_over:
+            msg = 'Error, This game is already over.'
+            raise endpoints.BadRequestException(msg)
+
+        # If the game has been cancelled
+        if self.game_cancelled:
+            msg = 'Error, this game has been cancelled.'
+            raise endpoints.BadRequestException(msg)
+
+        # If more than one letter is submitted.
+        if len(letter_guess) > 1:
+            msg = 'Error, you can only choose one letter at a time.'
+            raise endpoints.BadRequestException(msg)
+
+        # If letter guess has already been tried.
+        if self.letters_guessed and letter_guess in self.letters_guessed:
+            msg = 'Sorry, you already tried that letter, please pick another.'
+            return self.game_state(msg)
+
+        # If letter guess is incorrect.
+        if letter_guess not in self.secret_word:
+            msg = 'Sorry, that is incorrect'
+            self.decrement_misses_remaining()
+            self.update_letters_guessed(letter_guess)
+            self.update_history(guess=letter_guess, result='Incorrect')
+
+            if self.misses_remaining < 1:
+                self.end_game(False)
+                self.put()
+                msg = 'Sorry, that is incorrect and the game is now over.'
+                return game.game_state(msg)
+
+            self.put()
+            return self.game_state(msg)
+
+        # If letter guess is correct
+        if letter_guess in self.secret_word:
+            num_of_letters = self.secret_word.count(letter_guess)
+            game_won = self.update_current_solution(letter_guess)
+            self.update_letters_guessed(letter_guess)
+            self.update_history(guess=letter_guess, result='Correct')
+
+            if game_won:
+                msg = "Great Job, you won the game!"
+                self.update_score(letters=num_of_letters, words=1)
+                self.end_self(True)
+            else:
+                self.update_score(letters=num_of_letters)
+                msg = 'Nice Job, the letter {} is in the secret word'.format(letter_guess)
+
+            self.put()
+            return self.game_state(msg)
+
+
     def update_current_solution(self, letter):
             """Update the current solution."""
             # Get the indices of the letter matches
