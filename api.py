@@ -70,7 +70,7 @@ class HangmanAPI(remote.Service):
     def guess_letter(self, request):
         """Guess a letter in a game. Returns the state of the game"""
         letter_guess = request.letter_guess.upper()
-        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        game = Game.get_game(request.urlsafe_game_key)
 
         # If the game is already over
         if game.game_over:
@@ -134,7 +134,7 @@ class HangmanAPI(remote.Service):
                       http_method='PUT')
     def guess_word(self, request):
         """Guess the secret word in a game"""
-        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        game = Game.get_game(request.urlsafe_game_key)
         word_guess = request.word_guess.upper()
 
         # If the game is already over
@@ -212,12 +212,8 @@ class HangmanAPI(remote.Service):
                       http_method='PUT')
     def cancel_game(self, request):
         """Cancel a game"""
-        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        game = Game.get_game(request.urlsafe_game_key)
         msg = 'The game has been cancelled'
-
-        # If the requested game does not exist.
-        if not game:
-            raise endpoints.NotFoundException('No game found.')
 
         # If the requested game is already over.
         if game.game_over:
