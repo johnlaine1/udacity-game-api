@@ -135,42 +135,7 @@ class HangmanAPI(remote.Service):
     def guess_word(self, request):
         """Guess the secret word in a game"""
         game = Game.get_game(request.urlsafe_game_key)
-        word_guess = request.word_guess.upper()
-
-        # If the game is already over
-        if game.game_over:
-            msg = 'Error, This game is already over.'
-            raise endpoints.BadRequestException(msg)
-
-        # If the game has been cancelled
-        if game.game_cancelled:
-            msg = 'Error, this game has been cancelled.'
-            raise endpoints.BadRequestException(msg)
-
-        # If the guess is incorrect
-        if word_guess != game.secret_word:
-            game.decrement_misses_remaining()
-            game.update_history(guess=word_guess, result='Incorrect')
-            if game.misses_remaining < 1:
-                game.end_game(won=False)
-                game.update_history(guess='', result='Game Lost')
-                msg = 'Sorry, that was the wrong answer and the game is over'
-            else:
-                msg = 'Sorry, that was not the correct answer'
-
-            game.put()
-            return game.game_state(msg)
-
-        # If the guess is correct
-        if word_guess == game.secret_word:
-            blanks = game.current_solution.count('_')
-            game.update_score(blanks=blanks, words=1)
-            game.update_history(guess=word_guess, result='Correct')
-            game.end_game(won=True)
-            msg = 'Congratulations! you win!'
-
-            game.put()
-            return game.game_state(msg)
+        return game.guess_word(request.word_guess.upper())
 
 
     @endpoints.method(response_message=ScoreForms,

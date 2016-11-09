@@ -84,6 +84,43 @@ class Game(ndb.Model):
         return state
 
 
+    def guess_word(self, word_guess):
+        # If the game is already over
+        if self.game_over:
+            msg = 'Error, This game is already over.'
+            raise endpoints.BadRequestException(msg)
+
+        # If the game has been cancelled
+        if self.game_cancelled:
+            msg = 'Error, this game has been cancelled.'
+            raise endpoints.BadRequestException(msg)
+
+        # If the guess is incorrect
+        if word_guess != self.secret_word:
+            self.decrement_misses_remaining()
+            self.update_history(guess=word_guess, result='Incorrect')
+            if self.misses_remaining < 1:
+                self.end_game(won=False)
+                self.update_history(guess='', result='Game Lost')
+                msg = 'Sorry, that was the wrong answer and the game is over'
+            else:
+                msg = 'Sorry, that was not the correct answer'
+
+            self.put()
+            return self.game_state(msg)
+
+        # If the guess is correct
+        if word_guess == self.secret_word:
+            blanks = self.current_solution.count('_')
+            self.update_score(blanks=blanks, words=1)
+            self.update_history(guess=word_guess, result='Correct')
+            self.end_game(won=True)
+            msg = 'Congratulations! you win!'
+
+            self.put()
+            return self.game_state(msg)
+
+
     def update_current_solution(self, letter):
             """Update the current solution."""
             # Get the indices of the letter matches
