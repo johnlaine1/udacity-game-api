@@ -49,7 +49,7 @@ class User(ndb.Model):
 class Game(ndb.Model):
     """A Game object"""
     user                = ndb.KeyProperty(required=True, kind='User')
-    misses_allowed      = ndb.IntegerProperty(required=True, default=5)
+    misses_allowed      = ndb.IntegerProperty(required=True)
     misses_remaining    = ndb.IntegerProperty(required=True)
     letters_guessed     = ndb.StringProperty(default='')
     game_over           = ndb.BooleanProperty(required=True, default=False)
@@ -65,6 +65,7 @@ class Game(ndb.Model):
         """Creates and returns a new game"""
         secret_word = secret_word_generator()
         current_solution = ''.join(['_' for l in secret_word])
+
         game = Game(parent=user,
                     user=user,
                     misses_allowed=misses_allowed,
@@ -280,7 +281,7 @@ class StringMessage(messages.Message):
 class CreateGameForm(messages.Message):
     """Inbound, used to create a new game"""
     user_name = messages.StringField(1, required=True)
-    misses_allowed = messages.IntegerField(2, required=True)
+    misses_allowed = messages.StringField(2)
 
 
 class GameStateForm(messages.Message):

@@ -40,7 +40,18 @@ class HangmanAPI(remote.Service):
     def create_game(self, request):
         """Create a game"""
         user = User.get_user(request.user_name)
-        game = Game.create_game(user.key, request.misses_allowed)
+        misses_allowed = request.misses_allowed
+
+        # Check if misses_allowed exists and if so make sure it's a number
+        if misses_allowed:
+            if not misses_allowed.isnumeric():
+                msg = 'Error, only numbers are allowed in misses_allowed'
+                raise endpoints.BadRequestException(msg)
+            else:
+                game = Game.create_game(user.key, misses_allowed=int(misses_allowed))
+        else:
+            game = Game.create_game(user.key)
+
         return game.game_state('A new game of Hangman has been created!')
 
 
