@@ -62,8 +62,35 @@ class HangmanAPI(remote.Service):
                       http_method='PUT')
     def guess_letter(self, request):
         """Guess a letter in a game. Returns the state of the game"""
+        letter_guess = request.letter_guess.upper()
         game = Game.get_game(request.urlsafe_game_key)
-        return game.letter_guess(request.letter_guess.upper())
+
+        # If the game is already over
+        if game.game_over:
+            msg = 'Error, This game is already over.'
+            raise endpoints.BadRequestException(msg)
+
+        # If the game has been cancelled
+        if game.game_cancelled:
+            msg = 'Error, this game has been cancelled.'
+            raise endpoints.BadRequestException(msg)
+
+        # Check for illegal characters
+        if not letter_guess.isalpha():
+            msg = 'Error, only letters from a-z are accepted'
+            raise endpoints.BadRequestException(msg)
+
+        # If more than one letter is submitted.
+        if len(letter_guess) > 1:
+            msg = 'Error, you can only choose one letter at a time.'
+            raise endpoints.BadRequestException(msg)
+
+        # If letter guess has already been tried.
+        if game.letters_guessed and letter_guess in game.letters_guessed:
+            msg = 'Sorry, you already tried that letter, please pick another.'
+            raise endpoints.BadRequestException(msg)
+
+        return game.letter_guess(letter_guess)
 
 
     @endpoints.method(request_message=GUESS_WORD_REQUEST,
@@ -73,8 +100,25 @@ class HangmanAPI(remote.Service):
                       http_method='PUT')
     def guess_word(self, request):
         """Guess the secret word in a game"""
+        word_guess = request.word_guess.upper()
         game = Game.get_game(request.urlsafe_game_key)
-        return game.guess_word(request.word_guess.upper())
+
+        # If the game is already over
+        if game.game_over:
+            msg = 'Error, This game is already over.'
+            raise endpoints.BadRequestException(msg)
+
+        # If the game has been cancelled
+        if game.game_cancelled:
+            msg = 'Error, this game has been cancelled.'
+            raise endpoints.BadRequestException(msg)
+
+        # Check for illegal characters
+        if not word_guess.isalpha():
+            msg = 'Error, only letters from a-z are accepted'
+            raise endpoints.BadRequestException(msg)
+
+        return game.guess_word(word_guess)
 
 
     @endpoints.method(response_message=ScoreForms,

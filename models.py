@@ -120,15 +120,6 @@ class Game(ndb.Model):
 
     def guess_word(self, word_guess):
         """Handles the logic to guess a word in a game"""
-        # If the game is already over
-        if self.game_over:
-            msg = 'Error, This game is already over.'
-            raise endpoints.BadRequestException(msg)
-
-        # If the game has been cancelled
-        if self.game_cancelled:
-            msg = 'Error, this game has been cancelled.'
-            raise endpoints.BadRequestException(msg)
 
         # If the guess is incorrect
         if word_guess != self.secret_word:
@@ -158,25 +149,6 @@ class Game(ndb.Model):
 
     def letter_guess(self, letter_guess):
         """Handles the logic to guess a letter in a game"""
-        # If the game is already over
-        if self.game_over:
-            msg = 'Error, This game is already over.'
-            raise endpoints.BadRequestException(msg)
-
-        # If the game has been cancelled
-        if self.game_cancelled:
-            msg = 'Error, this game has been cancelled.'
-            raise endpoints.BadRequestException(msg)
-
-        # If more than one letter is submitted.
-        if len(letter_guess) > 1:
-            msg = 'Error, you can only choose one letter at a time.'
-            raise endpoints.BadRequestException(msg)
-
-        # If letter guess has already been tried.
-        if self.letters_guessed and letter_guess in self.letters_guessed:
-            msg = 'Sorry, you already tried that letter, please pick another.'
-            return self.game_state(msg)
 
         # If letter guess is incorrect.
         if letter_guess not in self.secret_word:
