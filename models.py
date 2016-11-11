@@ -189,7 +189,7 @@ class Game(ndb.Model):
                 self.end_game(False)
                 self.put()
                 msg = 'Sorry, that is incorrect and the game is now over.'
-                return game.game_state(msg)
+                return self.game_state(msg)
 
             self.put()
             return self.game_state(msg)
