@@ -7,14 +7,14 @@ from models import (
     Game,
     Score,
     StringMessage,
-    CreateGameForm,
     GameStateForm,
     GameStateForms,
     ScoreForm,
     ScoreForms,
-    CreateUserForm,
     RankingForms,
     GameHistoryForms,
+    CREATE_USER_REQUEST,
+    CREATE_GAME_REQUEST,
     GET_GAME_REQUEST,
     GUESS_LETTER_REQUEST,
     USER_SCORE_REQUEST,
@@ -30,8 +30,8 @@ from models import (
 class HangmanAPI(remote.Service):
     """Hangman Game API"""
 
-    @endpoints.method(request_message = CreateUserForm,
-                      response_message = StringMessage,
+    @endpoints.method(request_message=CREATE_USER_REQUEST,
+                      response_message=StringMessage,
                       path = 'user',
                       name = 'create_user',
                       http_method = 'POST')
@@ -42,7 +42,7 @@ class HangmanAPI(remote.Service):
             user.user_name))
 
 
-    @endpoints.method(request_message=CreateGameForm,
+    @endpoints.method(request_message=CREATE_GAME_REQUEST,
                       response_message=GameStateForm,
                       path='game',
                       name='create_game',

@@ -372,3 +372,6 @@ GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(
 GET_SCORES_REQUEST = endpoints.ResourceContainer(
     number_of_results=messages.StringField(1, required=False))
 
+CREATE_USER_REQUEST = endpoints.ResourceContainer(CreateUserForm)
+
+CREATE_GAME_REQUEST = endpoints.ResourceContainer(CreateGameForm)
