@@ -106,6 +106,8 @@ class HangmanAPI(remote.Service):
         """Return all games of a user"""
         user = User.get_user(request.user_name)
         games = Game.query(ancestor=user.key)
+        games = games.filter(Game.game_cancelled == False,
+                             Game.game_over == False)
         return GameStateForms(items=[game.game_state() for game in games])
 
 
