@@ -10,42 +10,6 @@ from config import LETTER_POINT, WORD_POINT, BLANK_POINT
 
 
 
-##### DATABASE MODELS #####
-class User(ndb.Model):
-    """A User Profile object"""
-    user_name = ndb.StringProperty(required=True)
-    email     = ndb.StringProperty()
-    score     = ndb.IntegerProperty(default=0)
-
-    @classmethod
-    def create_user(cls, user_name, email):
-        """Creates a user and saves to the DB"""
-        # Check if the user already exists
-        if cls.query(cls.user_name == user_name).get():
-            msg = 'Sorry, that username already exists'
-            raise endpoints.ConflictException(msg)
-        # Create the user and store in the database
-        user = cls(user_name=user_name, email=email)
-        user.put()
-        return user
-
-
-    @classmethod
-    def get_user(cls, user_name):
-        """Gets a user from the DB and returns it"""
-        user = cls.query(cls.user_name == user_name).get()
-        if not user:
-            msg = 'A user with that name does not exist!'
-            raise endpoints.NotFoundException(msg)
-        return user
-
-
-    def create_ranking_form(self):
-        """Creates and returns a RankingForm"""
-        return RankingForm(user_name=self.user_name,
-                           score=self.score)
-
-
 class Game(ndb.Model):
     """A Game object"""
     user                = ndb.KeyProperty(required=True, kind='User')
@@ -257,33 +221,6 @@ class Game(ndb.Model):
         return GameHistoryForms(history=history_form_items)
 
 
-class Score(ndb.Model):
-    """Score Object"""
-    user    = ndb.KeyProperty(required=True, kind='User')
-    date    = ndb.DateProperty(required=True)
-    won     = ndb.BooleanProperty(required=True)
-    score   = ndb.IntegerProperty(required=True)
-
-    def create_form(self):
-        """Creates and returns a ScoreForm"""
-        return ScoreForm(user_name=self.user.get().user_name,
-                         won=self.won,
-                         date=str(self.date),
-                         score=self.score)
-
-
-##### MESSAGES #####
-class StringMessage(messages.Message):
-    """A generic outbound string message"""
-    message = messages.StringField(1, required=True)
-
-
-class CreateGameForm(messages.Message):
-    """Inbound, used to create a new game"""
-    user_name = messages.StringField(1, required=True)
-    misses_allowed = messages.StringField(2)
-
-
 class GameStateForm(messages.Message):
     """Outbound game state information"""
     urlsafe_game_key = messages.StringField(1, required=True)
@@ -302,6 +239,12 @@ class GameStateForms(messages.Message):
     items = messages.MessageField(GameStateForm, 1, repeated=True)
 
 
+class CreateGameForm(messages.Message):
+    """Inbound, used to create a new game"""
+    user_name = messages.StringField(1, required=True)
+    misses_allowed = messages.StringField(2)
+
+
 class GuessLetterForm(messages.Message):
     """Inbound, used to guess a letter in a game"""
     letter_guess = messages.StringField(1, required=True)
@@ -310,36 +253,6 @@ class GuessLetterForm(messages.Message):
 class GuessWordForm(messages.Message):
     """Inbound, used to guess the secret word in a game"""
     word_guess = messages.StringField(1, required=True)
-
-
-class ScoreForm(messages.Message):
-    """Outbound, score information"""
-    user_name = messages.StringField(1, required=True)
-    date = messages.StringField(2, required=True)
-    won = messages.BooleanField(3, required=True)
-    score = messages.IntegerField(4, required=True)
-
-
-class ScoreForms(messages.Message):
-    """Outbound, create multiple instances of ScoreForm"""
-    items=messages.MessageField(ScoreForm, 1, repeated=True)
-
-
-class RankingForm(messages.Message):
-    """Outbound, user ranking information"""
-    user_name = messages.StringField(1, required=True)
-    score = messages.IntegerField(2, required=True)
-
-
-class RankingForms(messages.Message):
-    """Outbound, create mutiple instances of RankingForm"""
-    items = messages.MessageField(RankingForm, 1, repeated=True)
-
-
-class CreateUserForm(messages.Message):
-    """Inbound: Used to create a new user"""
-    user_name = messages.StringField(1, required = True)
-    email = messages.StringField(2)
 
 
 class GameHistoryForm(messages.Message):
@@ -351,27 +264,3 @@ class GameHistoryForm(messages.Message):
 class GameHistoryForms(messages.Message):
     """Outbound, create multiple instances of GameHistoryForm"""
     history = messages.MessageField(GameHistoryForm, 1, repeated=True)
-
-
-##### RESOURCE CONTAINERS #####
-GET_GAME_REQUEST     = endpoints.ResourceContainer(
-    urlsafe_game_key=messages.StringField(1))
-
-GUESS_LETTER_REQUEST = endpoints.ResourceContainer(
-    GuessLetterForm, urlsafe_game_key=messages.StringField(1))
-
-GUESS_WORD_REQUEST = endpoints.ResourceContainer(
-    GuessWordForm, urlsafe_game_key=messages.StringField(1))
-
-USER_SCORE_REQUEST   = endpoints.ResourceContainer(
-    user_name=messages.StringField(1))
-
-GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(
-    user_name=messages.StringField(1))
-
-GET_SCORES_REQUEST = endpoints.ResourceContainer(
-    number_of_results=messages.StringField(1, required=False))
-
-CREATE_USER_REQUEST = endpoints.ResourceContainer(CreateUserForm)
-
-CREATE_GAME_REQUEST = endpoints.ResourceContainer(CreateGameForm)

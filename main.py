@@ -2,13 +2,13 @@
 
 """main.py - This file contains handlers that are called by taskqueue and/or
 cronjobs."""
-import logging
 
 import webapp2
 from google.appengine.api import mail, app_identity
 from api import HangmanAPI
 
-from models import User, Game
+from models.user import User
+from models.game import Game
 
 
 class SendReminderEmail(webapp2.RequestHandler):

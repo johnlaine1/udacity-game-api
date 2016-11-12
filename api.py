@@ -1,45 +1,71 @@
 import endpoints
-from protorpc import remote
+from protorpc import remote, messages
 
 from utils import get_by_urlsafe
-from models import (
+from models.user import (
     User,
+    RankingForm,
+    RankingForms,
+    UserMessage,
+    CreateUserForm
+)
+import controllers.users as users
+
+from models.game import (
     Game,
-    Score,
-    StringMessage,
     GameStateForm,
     GameStateForms,
+    CreateGameForm,
+    GuessLetterForm,
+    GuessWordForm,
+    GameHistoryForm,
+    GameHistoryForms,
+)
+from models.score import (
+    Score,
     ScoreForm,
     ScoreForms,
-    RankingForms,
-    GameHistoryForms,
-    CREATE_USER_REQUEST,
-    CREATE_GAME_REQUEST,
-    GET_GAME_REQUEST,
-    GUESS_LETTER_REQUEST,
-    USER_SCORE_REQUEST,
-    GET_SCORES_REQUEST,
-    GET_USER_GAMES_REQUEST,
-    GUESS_WORD_REQUEST,
 )
 
+######### RESOURCE CONTAINERS ##########
+
+GET_GAME_REQUEST     = endpoints.ResourceContainer(
+    urlsafe_game_key=messages.StringField(1))
+
+GUESS_LETTER_REQUEST = endpoints.ResourceContainer(
+    GuessLetterForm, urlsafe_game_key=messages.StringField(1))
+
+GUESS_WORD_REQUEST = endpoints.ResourceContainer(
+    GuessWordForm, urlsafe_game_key=messages.StringField(1))
+
+USER_SCORE_REQUEST   = endpoints.ResourceContainer(
+    user_name=messages.StringField(1))
+
+GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(
+    user_name=messages.StringField(1))
+
+GET_SCORES_REQUEST = endpoints.ResourceContainer(
+    number_of_results=messages.StringField(1, required=False))
+
+CREATE_USER_REQUEST = endpoints.ResourceContainer(CreateUserForm)
+
+CREATE_GAME_REQUEST = endpoints.ResourceContainer(CreateGameForm)
 
 
-##### GAME API #####
+########## GAME API ##########
+
 @endpoints.api(name='hangman', version = 'v1')
 class HangmanAPI(remote.Service):
     """Hangman Game API"""
 
     @endpoints.method(request_message=CREATE_USER_REQUEST,
-                      response_message=StringMessage,
+                      response_message=UserMessage,
                       path = 'user',
                       name = 'create_user',
                       http_method = 'POST')
     def create_user(self, request):
         """Create a user"""
-        user = User.create_user(request.user_name, request.email)
-        return StringMessage(message = 'User {} has been created'.format(
-            user.user_name))
+        return users.create(request)
 
 
     @endpoints.method(request_message=CREATE_GAME_REQUEST,
