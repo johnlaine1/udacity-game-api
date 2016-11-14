@@ -94,7 +94,7 @@ def guess_letter(urlsafe_game_key, letter_guess):
     # If letter guess is correct
     if letter_guess in game.secret_word:
         num_of_letters = game.secret_word.count(letter_guess)
-        game_won = game.update_current_solution(letter_guess)
+        game_won = update_current_solution(game, letter_guess)
         game.update_letters_guessed(letter_guess)
         game.update_history(guess=letter_guess, result='Correct')
 
@@ -205,3 +205,16 @@ def end_game(game, won=False):
         score.put()
     else:
         game.update_history(guess='', result='Game Lost')
+
+def update_current_solution(game, letter):
+    """Update the current solution."""
+    # Get the indices of the letter matches
+    matches = [i for i, x in enumerate(list(game.secret_word)) if x == letter]
+    solution = list(game.current_solution)
+    for match in matches:
+        solution[match] = letter
+    game.current_solution = ''.join(solution)
+    if game.current_solution == game.secret_word:
+        return True
+    else:
+        return False

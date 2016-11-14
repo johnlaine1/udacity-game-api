@@ -61,20 +61,6 @@ class Game(ndb.Model):
         return state
 
 
-    def update_current_solution(self, letter):
-        """Update the current solution."""
-        # Get the indices of the letter matches
-        matches = [i for i, x in enumerate(list(self.secret_word)) if x == letter]
-        solution = list(self.current_solution)
-        for match in matches:
-            solution[match] = letter
-        self.current_solution = ''.join(solution)
-        if self.current_solution == self.secret_word:
-            return True
-        else:
-            return False
-
-
     def decrement_misses_remaining(self):
         """Decrement the misses remaining property"""
         self.misses_remaining -=1
