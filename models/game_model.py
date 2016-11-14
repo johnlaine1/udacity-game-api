@@ -25,12 +25,9 @@ class Game(ndb.Model):
 
 
     @classmethod
-    def create_game(cls, user, misses_allowed=5):
+    def create_game(cls, user, misses_allowed, secret_word, current_solution):
         """Creates and returns a new game"""
-        secret_word = secret_word_generator()
-        current_solution = ''.join(['_' for l in secret_word])
-
-        game = Game(parent=user,
+        game = cls(parent=user,
                     user=user,
                     misses_allowed=misses_allowed,
                     misses_remaining=misses_allowed,
