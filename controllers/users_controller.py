@@ -20,8 +20,9 @@ def get_user(user_name):
     return user
 
 def get_user_rankings():
-        users = User.query().order(-User.score)
-        return RankingForms(items=[user.create_ranking_form() for user in users])
+    """Get all user rankings"""
+    users = User.query().order(-User.score)
+    return RankingForms(items=[user.create_ranking_form() for user in users])
 
 
 

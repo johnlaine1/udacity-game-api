@@ -32,7 +32,7 @@ GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(
 
 CREATE_GAME_REQUEST = endpoints.ResourceContainer(CreateGameForm)
 
-@HangmanAPI.api_class(resource_name='game')
+@HangmanAPI.api_class(resource_name='games')
 class GamesEndpoints(remote.Service):
 
     @endpoints.method(request_message=CREATE_GAME_REQUEST,
@@ -53,8 +53,7 @@ class GamesEndpoints(remote.Service):
                       http_method='GET')
     def get_game(self, request):
         """Return a game state"""
-        game = Game.get_game(request.urlsafe_game_key)
-        return game.game_state("Here's the game you requested")
+        return games_ctrl.get_game(request.urlsafe_game_key)
 
 
     @endpoints.method(request_message=GUESS_LETTER_REQUEST,
@@ -64,35 +63,8 @@ class GamesEndpoints(remote.Service):
                       http_method='PUT')
     def guess_letter(self, request):
         """Guess a letter in a game. Returns the state of the game"""
-        letter_guess = request.letter_guess.upper()
-        game = Game.get_game(request.urlsafe_game_key)
-
-        # If the game is already over
-        if game.game_over:
-            msg = 'Error, This game is already over.'
-            raise endpoints.BadRequestException(msg)
-
-        # If the game has been cancelled
-        if game.game_cancelled:
-            msg = 'Error, this game has been cancelled.'
-            raise endpoints.BadRequestException(msg)
-
-        # Check for illegal characters
-        if not letter_guess.isalpha():
-            msg = 'Error, only letters from a-z are accepted'
-            raise endpoints.BadRequestException(msg)
-
-        # If more than one letter is submitted.
-        if len(letter_guess) > 1:
-            msg = 'Error, you can only choose one letter at a time.'
-            raise endpoints.BadRequestException(msg)
-
-        # If letter guess has already been tried.
-        if game.letters_guessed and letter_guess in game.letters_guessed:
-            msg = 'Sorry, you already tried that letter, please pick another.'
-            raise endpoints.BadRequestException(msg)
-
-        return game.letter_guess(letter_guess)
+        return games_ctrl.guess_letter(request.urlsafe_game_key,
+                                       request.letter_guess)
 
 
     @endpoints.method(request_message=GUESS_WORD_REQUEST,
@@ -102,25 +74,8 @@ class GamesEndpoints(remote.Service):
                       http_method='PUT')
     def guess_word(self, request):
         """Guess the secret word in a game"""
-        word_guess = request.word_guess.upper()
-        game = Game.get_game(request.urlsafe_game_key)
-
-        # If the game is already over
-        if game.game_over:
-            msg = 'Error, This game is already over.'
-            raise endpoints.BadRequestException(msg)
-
-        # If the game has been cancelled
-        if game.game_cancelled:
-            msg = 'Error, this game has been cancelled.'
-            raise endpoints.BadRequestException(msg)
-
-        # Check for illegal characters
-        if not word_guess.isalpha():
-            msg = 'Error, only letters from a-z are accepted'
-            raise endpoints.BadRequestException(msg)
-
-        return game.guess_word(word_guess)
+        return games_ctrl.guess_word(request.urlsafe_game_key,
+                                     request.word_guess)
 
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
@@ -130,8 +85,7 @@ class GamesEndpoints(remote.Service):
                       http_method='GET')
     def get_game_history(self, request):
         """Get the history of a game"""
-        game = Game.get_game(request.urlsafe_game_key)
-        return game.create_history_form()
+        return games_ctrl.get_game_history(request.urlsafe_game_key)
 
 
     @endpoints.method(request_message=GET_USER_GAMES_REQUEST,
@@ -141,11 +95,7 @@ class GamesEndpoints(remote.Service):
                       http_method='GET')
     def get_user_games(self, request):
         """Return all games of a user"""
-        user = users.get(request.user_name)
-        games = Game.query(ancestor=user.key)
-        games = games.filter(Game.game_cancelled == False,
-                             Game.game_over == False)
-        return GameStateForms(items=[game.game_state() for game in games])
+        return games_ctrl.get_user_games(request.user_name)
 
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
@@ -155,5 +105,4 @@ class GamesEndpoints(remote.Service):
                       http_method='PUT')
     def cancel_game(self, request):
         """Cancel a game"""
-        game = Game.get_game(request.urlsafe_game_key)
-        return game.cancel_game()
+        return games_ctrl.cancel_game(request.urlsafe_game_key)

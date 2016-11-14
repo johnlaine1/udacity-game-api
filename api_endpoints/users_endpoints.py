@@ -14,7 +14,7 @@ CREATE_USER_REQUEST = endpoints.ResourceContainer(CreateUserForm)
 
 
 # API Endpoints
-@HangmanAPI.api_class(resource_name='user')
+@HangmanAPI.api_class(resource_name='users')
 class UsersEndpoints(remote.Service):
 
     @endpoints.method(request_message=CREATE_USER_REQUEST,
