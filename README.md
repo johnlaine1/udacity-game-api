@@ -64,7 +64,7 @@ So if the secret word was 'HOUSE' and you had already guessed the 'H' and 'S', y
 - **create_game:**
     - Path: 'game'
     - Method: POST
-    - Parameters: user_name, misses_allowed(optional)
+    - Parameters: user_name, misses_allowed(optional, default=5)
     - Returns: GameForm with initial game state.
     - Raises: NotFoundException - if user_name does not exist.
     - Description: Creates a new game.
@@ -113,7 +113,7 @@ So if the secret word was 'HOUSE' and you had already guessed the 'H' and 'S', y
 - **get_high_scores:**
     - Path: 'scores/high'
     - Method: GET
-    - Parameters: number_of_results(optional)
+    - Parameters: number_of_results(optional, default-all)
     - Returns: A list of ScoreForms
     - Raises: None
     - Description: Returns a list of high scores
