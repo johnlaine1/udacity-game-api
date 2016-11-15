@@ -101,7 +101,7 @@ def guess_letter(urlsafe_game_key, letter_guess):
         if game_won:
             msg = "Great Job, you won the game!"
             game.update_score(letters=num_of_letters, words=1)
-            end_game(gaem, True)
+            end_game(game, True)
         else:
             game.update_score(letters=num_of_letters)
             msg = 'Nice Job, the letter {} is in the secret word'.format(letter_guess)
