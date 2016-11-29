@@ -2,6 +2,7 @@
 
 #### Created by: John Laine
 
+### [Live Demo](https://apis-explorer.appspot.com/apis-explorer/?base=https://named-magnet-141501.appspot.com/_ah/api#p/hangman/v1.0/)
 
 ## Project Description
 An API with endpoints that will allow others to develop a front-end for the game.
