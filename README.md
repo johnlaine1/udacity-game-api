@@ -41,6 +41,7 @@ So if the secret word was 'HOUSE' and you had already guessed the 'H' and 'S', y
     - Returns: Message confirming creation of the user.
     - Raises: ConflictException - if the user_name already exists.
     - Description: Creates a new user.
+    - URL: https://named-magnet-141501.appspot.com/_ah/api/hangman/v1.0/users
 - **get_user_games:**
     - Path: 'games/user/{user_name}'
     - Method: GET
